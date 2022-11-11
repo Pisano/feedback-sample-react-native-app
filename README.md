@@ -13,6 +13,11 @@ Pisano Feedback SDK for React Native
 npm install feedback-react-native-sdk
 ```
 
+For iOS
+```sh
+cd iOS && pod install
+```
+
 ## Usage
 
 ```js
