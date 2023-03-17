@@ -12,7 +12,7 @@
   "dependencies": {
     "feedback-react-native-sdk": "^0.1.0",
     "react": "18.1.0",
-    "react-native": "0.70.4"
+    "react-native": "0.70.5"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",

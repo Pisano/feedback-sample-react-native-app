@@ -11,7 +11,7 @@ PODS:
     - React-jsi (= 0.70.4)
     - ReactCommon/turbomodule/core (= 0.70.4)
   - feedback-react-native-sdk (0.1.0):
-    - Pisano
+    - Pisano (~> 0.2.0)
     - React-Core
   - Flipper (0.125.0):
     - Flipper-Folly (~> 2.6)
@@ -79,7 +79,7 @@ PODS:
   - hermes-engine (0.70.4)
   - libevent (2.1.12)
   - OpenSSL-Universal (1.1.1100)
-  - Pisano (0.1.1.2)
+  - Pisano (0.2.0)
   - RCT-Folly (2021.07.22.00):
     - boost
     - DoubleConversion
@@ -536,7 +536,7 @@ SPEC CHECKSUMS:
   DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
   FBLazyVector: 8a28262f61fbe40c04ce8677b8d835d97c18f1b3
   FBReactNativeSpec: b475991eb2d8da6a4ec32d09a8df31b0247fa87d
-  feedback-react-native-sdk: 292fb22b6f01c67e2fe66fa34ce12e141efbe39a
+  feedback-react-native-sdk: ef4cd677822f483ac170a15b260363a2f167898f
   Flipper: 26fc4b7382499f1281eb8cb921e5c3ad6de91fe0
   Flipper-Boost-iOSX: fd1e2b8cbef7e662a122412d7ac5f5bea715403c
   Flipper-DoubleConversion: 2dc99b02f658daf147069aad9dbd29d8feb06d30
@@ -551,7 +551,7 @@ SPEC CHECKSUMS:
   hermes-engine: 3623325e0d0676a45fbc544d72c57dd79fce7446
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
-  Pisano: eb5f752b86a8b5adb26725416630c01c67a7d632
+  Pisano: f027bc5268aab32ede883ede53064dd9b878072e
   RCT-Folly: 0080d0a6ebf2577475bda044aa59e2ca1f909cda
   RCTRequired: 49a2c4d4215580d8b24ed538ae01b6de20b43a76
   RCTTypeSafety: 55d538399fe8b51e5cd862e2ec2f9b135b07e783
