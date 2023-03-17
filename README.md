@@ -29,11 +29,14 @@ In order to use iOS SDK, you should add the following permissions in Info.plist 
 ## Usage
 
 ```js
-import { feedbackSDKDebugMode } from 'feedback-react-native-sdk';
-import { feedbackSDKBoot } from 'feedback-react-native-sdk';
-import { feedbackSDKShow } from 'feedback-react-native-sdk';
-import { feedbackSDKTrack } from 'feedback-react-native-sdk';
-import { feedbackSDKClear } from 'feedback-react-native-sdk';
+import {
+  feedbackSDKDebugMode,
+  feedbackSDKBoot,
+  feedbackSDKShow,
+  feedbackSDKClear,
+  feedbackSDKViewMode,
+  feedbackSDKCallback
+} from 'feedback-react-native-sdk'
 
 // ...
 
@@ -41,7 +44,7 @@ feedbackSDKDebugMode(bool);
 
 feedbackSDKBoot(appId, accessKey, apiUrl, feedbackUrl, eventUrl);
       
-feedbackSDKShow(flowId, language, customer, payload, (status) => {
+feedbackSDKShow(feedbackSDKViewMode, customTitle, titleFontSize, flowId, language, customer, payload, (status) => {
       console.log("Show Status: " + status);
     });
 
@@ -64,11 +67,26 @@ Boot Method
 Show Method
 | Parameter  Name | Type  | Description  |
 | ------- | --- | --- |
+| viewMode | feedbackSDKViewMode | View Mode of Flow Screen, Default or Bottom Sheet |
+| title | String | Custom Title of Flow Screen |
+| titleFontSize | number | Custom Title Font Size |
 | flowId | String | The ID of related flow. Can be obtained from Pisano Dashboard. Can be sent as empty string "" for default flow |
 | language | String | Language code |
 | payload | Dictionary  | Question and related answer in an array (mostly uses for pre-loaded responses to take transactional data(s))  |
 | customer | Dictionary | Customer Properties |
-| completion | String | CloseStatus Description |
+| completion | feedbackSDKCallback | feedbackSDKCallback enum |
+
+```js
+feedbackSDKCallback
+  None
+  Closed,
+  SendFeedback,
+  Outside,
+  Opened,
+  DisplayOnce,
+  PreventMultipleFeedback,
+  QuotaExceeded
+  ```
 
 ## Contributing
 
