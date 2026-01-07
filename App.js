@@ -33,14 +33,21 @@ const DEFAULTS = {
 };
 
 const loadLocalConfig = () => {
+  // IMPORTANT:
+  // Metro needs to be able to statically analyze `require()` calls. A `try/catch`
+  // does NOT prevent resolution errors during bundling if the module doesn't exist.
+  // We first check with `require.resolve`, then require only if it exists.
   try {
-    // `pisano.config.js` is local-only (ignored by git). We load it dynamically
-    // so the app still runs without it.
-    const mod = require('./pisano.config');
-    return mod?.PISANO_CONFIG ?? mod?.default ?? DEFAULTS;
+    const resolved = require.resolve('./pisano.config');
+    if (resolved) {
+      // eslint-disable-next-line global-require
+      const mod = require('./pisano.config');
+      return mod?.PISANO_CONFIG ?? mod?.default ?? DEFAULTS;
+    }
   } catch {
-    return DEFAULTS;
+    // ignore: local config doesn't exist
   }
+  return DEFAULTS;
 };
 
 const toMap = (value) => {
