@@ -1,6 +1,6 @@
 # Pisano Feedback Sample Application
 
-It is a sample react native application using the Feedback SDK.
+It is a sample react native application using the Feedback SDK (currently tested with `feedback-react-native-sdk@0.2.0`).
 
 ## How to use Feedback SDK
 
@@ -10,13 +10,31 @@ Pisano Feedback SDK for React Native
 ## Installation
 
 ```sh
+npm install
 npm install feedback-react-native-sdk
 ```
 
-For iOS
+After installing JavaScript dependencies you can prepare the native projects:
+
+### Android
+
 ```sh
-cd iOS && pod install
+cd android
+./gradlew clean
+./gradlew assembleDebug   # or assembleRelease
 ```
+
+> Android builds require JDK 17 and Android Gradle Plugin 7.x+. The sample project already disables Flipper for release parity with production builds.
+
+### iOS
+
+```sh
+cd ios
+bundle install    # only once, if you use the included Gemfile
+bundle exec pod install
+```
+
+> Xcode 15 / CocoaPods 1.11+ is expected. Folly/boost flags needed for the latest toolchains are preconfigured in the Podfile.
 
 In order to use iOS SDK, you should add the following permissions in Info.plist file
 

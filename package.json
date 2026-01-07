@@ -7,22 +7,26 @@
     "ios": "react-native run-ios",
     "start": "react-native start",
     "test": "jest",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "postinstall": "patch-package"
   },
   "dependencies": {
-    "feedback-react-native-sdk": "^0.1.0",
-    "react": "18.1.0",
-    "react-native": "0.70.5"
+    "feedback-react-native-sdk": "^0.2.7",
+    "react": "19.0.0",
+    "react-native": "0.79.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",
     "@babel/runtime": "^7.12.5",
+    "@react-native-community/cli": "19.0.0",
     "@react-native-community/eslint-config": "^2.0.0",
+    "@react-native/babel-preset": "0.79.0",
     "babel-jest": "^26.6.3",
     "eslint": "^7.32.0",
     "jest": "^26.6.3",
     "metro-react-native-babel-preset": "0.72.3",
-    "react-test-renderer": "18.1.0"
+    "patch-package": "^8.0.1",
+    "react-test-renderer": "19.0.0"
   },
   "jest": {
     "preset": "react-native"

@@ -5,6 +5,9 @@
 # Xcode
 #
 build/
+ios/build/
+ios/DerivedData/
+ios/build/DerivedData/
 *.pbxuser
 !default.pbxuser
 *.mode1v3
@@ -25,6 +28,7 @@ ios/.xcode.env.local
 # Android/IntelliJ
 #
 build/
+android/app/build/
 .idea
 .gradle
 local.properties
@@ -35,6 +39,7 @@ local.properties
 # node.js
 #
 node_modules/
+.npm-debug.log*
 npm-debug.log
 yarn-error.log
 
@@ -58,6 +63,16 @@ buck-out/
 
 # Bundle artifact
 *.jsbundle
+
+# Local Pisano config (do not commit secrets)
+pisano.config.js
+pisano.config.ts
+
+# Android bundle outputs (generated)
+android/app/src/main/assets/
+
+# IDE / tooling
+.vscode/
 
 # Ruby / CocoaPods
 /ios/Pods/
