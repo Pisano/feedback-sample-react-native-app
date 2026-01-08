@@ -1,14 +1,17 @@
 require_relative '../node_modules/react-native/scripts/react_native_pods'
-require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
 
-platform :ios, '12.4'
-install! 'cocoapods', :deterministic_uuids => false
+platform :ios, min_ios_version_supported
+prepare_react_native_project!
+
+# Required by request: build pods as frameworks. For RN 0.70.x, static linkage is typically the most compatible.
+use_frameworks! :linkage => :static
+
+# Force-enable the New Architecture for iOS pods/codegen.
+# This also aligns with feedback-react-native-sdk.podspec which gates new-arch deps on this env var.
+ENV['RCT_NEW_ARCH_ENABLED'] = '1'
 
 target 'FeedbackSampleReactNativeApp' do
   config = use_native_modules!
-
-  # Flags change depending on the env values.
-  flags = get_default_flags()
 
   use_react_native!(
     :path => config[:reactNativePath],
@@ -16,12 +19,8 @@ target 'FeedbackSampleReactNativeApp' do
     # Upcoming versions of React Native may rely on get_default_flags(), but
     # we make it explicit here to aid in the React Native upgrade process.
     :hermes_enabled => true,
-    :fabric_enabled => flags[:fabric_enabled],
-    # Enables Flipper.
-    #
-    # Note that if you have use_frameworks! enabled, Flipper will not work and
-    # you should disable the next line.
-    :flipper_configuration => FlipperConfiguration.enabled,
+    :fabric_enabled => true,
+    :new_arch_enabled => true,
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
@@ -38,6 +37,29 @@ target 'FeedbackSampleReactNativeApp' do
       # necessary for Mac Catalyst builds
       :mac_catalyst_enabled => false
     )
-    __apply_Xcode_12_5_M1_post_install_workaround(installer)
+
+    installer.pods_project.targets.each do |target|
+      next unless target.name == 'RCT-Folly'
+
+      target.build_configurations.each do |config|
+        definitions = config.build_settings['GCC_PREPROCESSOR_DEFINITIONS']
+        definitions = definitions ? Array(definitions) : ['$(inherited)']
+
+        unless definitions.include?('FOLLY_HAVE_CLOCK_GETTIME=1')
+          definitions << 'FOLLY_HAVE_CLOCK_GETTIME=1'
+        end
+
+        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = definitions
+
+        cpp_flags = config.build_settings['OTHER_CPLUSPLUSFLAGS']
+        cpp_flags = cpp_flags ? Array(cpp_flags) : ['$(inherited)']
+
+        unless cpp_flags.include?('-D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION')
+          cpp_flags << '-D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION'
+        end
+
+        config.build_settings['OTHER_CPLUSPLUSFLAGS'] = cpp_flags
+      end
+    end
   end
 end
