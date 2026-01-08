@@ -106,6 +106,17 @@ feedbackSDKBoot(
 );
 ```
 
+**Boot method parameters**
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `appId` | `string` | ✅ | Application ID (from Pisano dashboard) |
+| `accessKey` | `string` | ✅ | Access key (from Pisano dashboard) |
+| `apiUrl` | `string` | ✅ | Base API URL |
+| `feedbackUrl` | `string` | ✅ | Base URL for feedback/web widget |
+| `eventUrl` | `string` | ❌ | Optional event/tracking URL |
+| `callback` | `(status) => void` | ❌ | Receives SDK close/status string |
+
 ### 2) Show the widget
 
 ```js
@@ -123,6 +134,55 @@ feedbackSDKShow(
 );
 ```
 
+**Show method parameters (`feedbackSDKShow`)**
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `viewMode` | `feedbackSDKViewMode` | ✅ | Widget presentation mode (`Default` / `BottomSheet`) |
+| `title` | `string \| null` | ❌ | Custom widget title |
+| `titleFontSize` | `number \| null` | ❌ | Title font size |
+| `flowId` | `string \| null` | ❌ | Flow ID (send `null` for default flow) |
+| `language` | `string \| null` | ❌ | Language code (`en`, `tr`, …) |
+| `customer` | `Map<string, any> \| null` | ❌ | Customer properties |
+| `payload` | `Map<string, string> \| null` | ❌ | Transactional/prefill data |
+| `callback` | `(status) => void` | ✅ | Returns a `feedbackSDKCallback` value |
+
+#### Optional: style the title (color/font)
+
+This sample app also provides **`feedbackSDKShowStyled`** (via `patch-package`) to pass title styling to native where supported.
+
+```js
+import { feedbackSDKShowStyled, feedbackSDKViewMode } from 'feedback-react-native-sdk';
+
+feedbackSDKShowStyled(
+  feedbackSDKViewMode.BottomSheet,
+  'We Value Your Feedback',
+  16,
+  '#2D2D2D', // titleColorHex
+  'Title',   // titleFont ("Title" | "Body")
+  null,
+  'en',
+  new Map([['externalId', 'USER-123']]),
+  new Map([['source', 'react-native-app']]),
+  (result) => console.log('Show result:', result)
+);
+```
+
+**Show method parameters (`feedbackSDKShowStyled`)**
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `viewMode` | `feedbackSDKViewMode` | ✅ | Widget presentation mode |
+| `title` | `string \| null` | ❌ | Custom widget title |
+| `titleFontSize` | `number \| null` | ❌ | Title font size |
+| `titleColorHex` | `string \| null` | ❌ | Hex color (e.g. `#RRGGBB` or `#AARRGGBB`) |
+| `titleFont` | `string \| null` | ❌ | Title font key (sample uses `"Title"` / `"Body"`) |
+| `flowId` | `string \| null` | ❌ | Flow ID |
+| `language` | `string \| null` | ❌ | Language code |
+| `customer` | `Map<string, any> \| null` | ❌ | Customer properties |
+| `payload` | `Map<string, string> \| null` | ❌ | Transactional/prefill data |
+| `callback` | `(status) => void` | ✅ | Returns a `feedbackSDKCallback` value |
+
 ### 3) Track an event (optional)
 
 ```js
@@ -137,6 +197,16 @@ feedbackSDKTrack(
 );
 ```
 
+**Track method parameters**
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `event` | `string` | ✅ | Event name (e.g. `purchase_completed`) |
+| `payload` | `Map<string, string> \| undefined` | ❌ | Event payload |
+| `customer` | `Map<string, any> \| undefined` | ❌ | Customer properties |
+| `language` | `string \| undefined` | ❌ | Language code |
+| `callback` | `(status) => void` | ❌ | Completion callback (string) |
+
 ### 4) Clear (optional)
 
 ```js
@@ -144,6 +214,34 @@ import { feedbackSDKClear } from 'feedback-react-native-sdk';
 
 feedbackSDKClear();
 ```
+
+**Clear method parameters**
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| *(none)* |  |  | Clears SDK state (e.g. cached customer/session) |
+
+### Enums
+
+**`feedbackSDKViewMode`**
+
+| Value | Description |
+| --- | --- |
+| `feedbackSDKViewMode.Default` | Default presentation |
+| `feedbackSDKViewMode.BottomSheet` | Bottom sheet presentation |
+
+**`feedbackSDKCallback`**
+
+| Value | Description |
+| --- | --- |
+| `None` | No-op / unknown |
+| `Closed` | Widget closed |
+| `SendFeedback` | Feedback sent |
+| `Outside` | Closed by tapping outside |
+| `Opened` | Widget opened |
+| `DisplayOnce` | Display-once rule triggered |
+| `PreventMultipleFeedback` | Prevent-multiple-feedback rule triggered |
+| `QuotaExceeded` | Quota exceeded |
 
 ### HealthCheck?
 
