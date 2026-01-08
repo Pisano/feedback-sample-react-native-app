@@ -1273,7 +1273,7 @@
   dependencies:
     joi "^17.2.1"
 
-"@react-native-community/cli@*", "@react-native-community/cli@^19.0.0":
+"@react-native-community/cli@*", "@react-native-community/cli@19.0.0":
   version "19.0.0"
   resolved "https://registry.npmjs.org/@react-native-community/cli/-/cli-19.0.0.tgz"
   integrity sha512-a7lAt0mACJ2jsCgDIFWpsCaqWxWoRTZwRMD5HOS3RYOYEUBzp4bfiQdjLUmrx5vF76KvcD0Q1YigrAVrEbSmbw==
@@ -1438,6 +1438,26 @@
   version "0.79.0"
   resolved "https://registry.npmjs.org/@react-native/js-polyfills/-/js-polyfills-0.79.0.tgz"
   integrity sha512-+8lk/zP90JC9xZBGhI8TPqqR1Y5dYXwXvfhXygr/LlHoo+H8TeQxcPrXWdT+PWOJl6Gf7dbCOGh9Std8J7CSQA==
+
+"@react-native/metro-babel-transformer@0.79.0":
+  version "0.79.0"
+  resolved "https://registry.npmjs.org/@react-native/metro-babel-transformer/-/metro-babel-transformer-0.79.0.tgz"
+  integrity sha512-bv2y9WVmLXOZeEB6yi3Lol8nMjtYLTRY7Ws47x6MPNOG0XrXCsn/TmK704V2whq/GJsj22KMyvzkwG66DX6KSw==
+  dependencies:
+    "@babel/core" "^7.25.2"
+    "@react-native/babel-preset" "0.79.0"
+    hermes-parser "0.25.1"
+    nullthrows "^1.1.1"
+
+"@react-native/metro-config@0.79.0":
+  version "0.79.0"
+  resolved "https://registry.npmjs.org/@react-native/metro-config/-/metro-config-0.79.0.tgz"
+  integrity sha512-MHevg80zRsyCsv8entCaa8W/dbf+ldnmrsQSllL4Qc8zJBhtXkqEHKDlY+W+qcKmsX48O6oI4PHER38sf3WO4Q==
+  dependencies:
+    "@react-native/js-polyfills" "0.79.0"
+    "@react-native/metro-babel-transformer" "0.79.0"
+    metro-config "^0.82.0"
+    metro-runtime "^0.82.0"
 
 "@react-native/normalize-colors@0.79.0":
   version "0.79.0"

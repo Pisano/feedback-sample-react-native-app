@@ -8,6 +8,7 @@ export const PISANO_CONFIG = {
   accessKey: 'VwXSFFfvU19JXECo41gB5Lwv_2dSCj2ccnTEjL_tGj7oDjBfW3Tjb1y5WYagA9sYzBQ',
   apiUrl: 'https://api.try.psn.cx',
   feedbackUrl: 'https://web.try.psn.cx/web_feedback',
+  // eventUrl can be left empty if not used
   eventUrl: '',
   language: 'en',
   flowId: '',

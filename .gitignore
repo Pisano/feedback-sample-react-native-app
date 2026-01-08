@@ -65,14 +65,19 @@ buck-out/
 *.jsbundle
 
 # Local Pisano config (do not commit secrets)
-pisano.config.js
-pisano.config.ts
+# Demo credentials live in `pisano.config.js` / `pisano.config.example.js`.
+# If you want private overrides, use these (ignored):
+pisano.config.local.js
+pisano.config.local.ts
 
 # Android bundle outputs (generated)
 android/app/src/main/assets/
 
 # IDE / tooling
 .vscode/
+
+# Local recordings / media
+scripts/*.mp4
 
 # Ruby / CocoaPods
 /ios/Pods/

@@ -9,3 +9,511 @@ index c99647d..aa23895 100644
  
    <uses-permission android:name="android.permission.INTERNET" />
    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+diff --git a/node_modules/feedback-react-native-sdk/android/build.gradle b/node_modules/feedback-react-native-sdk/android/build.gradle
+index 0b0a0b0..c0ffee0 100644
+--- a/node_modules/feedback-react-native-sdk/android/build.gradle
++++ b/node_modules/feedback-react-native-sdk/android/build.gradle
+@@ -1,45 +1,20 @@
+-buildscript {
+-  repositories {
+-      google()
+-      mavenCentral()
+-  }
+-
+-  dependencies {
+-    classpath localGroovy()
+-    classpath 'com.android.tools.build:gradle:8.2.2'
+-  }
+-}
+-
+ def isNewArchitectureEnabled() {
+   def propertyName = "FeedbackReactNativeSdk_newArchEnabled"
+   if (rootProject.hasProperty(propertyName)) {
+     return rootProject.getProperty(propertyName) == "true"
+   }
+ 
+   return false
+ }
+ 
+-apply plugin: 'com.android.library'
+-
+-if (isNewArchitectureEnabled()) {
+-  apply plugin: 'com.facebook.react'
+-}
+-
+-def getExtOrDefault(name) {
+-  return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties['FeedbackReactNativeSdk_' + name]
+-}
+-
+-def getExtOrIntegerDefault(name) {
+-  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties['FeedbackReactNativeSdk_' + name]).toInteger()
+-}
++plugins {
++  id 'com.android.library'
++  // We apply the RN Gradle plugin unconditionally so it can be resolved via settings.gradle's
++  // pluginManagement/includeBuild on RN 0.79+. Codegen is still gated by isNewArchitectureEnabled().
++  id 'com.facebook.react'
++}
+ 
+ android {
+-  compileSdkVersion getExtOrIntegerDefault('compileSdkVersion')
+   namespace "com.feedbackreactnativesdk"
++  compileSdk rootProject.ext.compileSdkVersion
+ 
+   defaultConfig {
+-    minSdkVersion getExtOrIntegerDefault('minSdkVersion')
+-    targetSdkVersion getExtOrIntegerDefault('targetSdkVersion')
++    minSdk rootProject.ext.minSdkVersion
++    targetSdk rootProject.ext.targetSdkVersion
+    buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
+    consumerProguardFiles 'consumer-rules.pro'
+  }
+diff --git a/node_modules/feedback-react-native-sdk/src/NativeFeedbackReactNativeSdk.ts b/node_modules/feedback-react-native-sdk/src/NativeFeedbackReactNativeSdk.ts
+index 0d23c68..d3e1a20 100644
+--- a/node_modules/feedback-react-native-sdk/src/NativeFeedbackReactNativeSdk.ts
++++ b/node_modules/feedback-react-native-sdk/src/NativeFeedbackReactNativeSdk.ts
+@@ -36,6 +36,19 @@ export interface Spec extends TurboModule {
+     payload: Object | null,
+     callback: (status: feedbackSDKCallback | undefined | string) => void
+   ): void;
++  showStyled(
++    viewMode: feedbackSDKViewMode,
++    title: string | null,
++    titleFontSize: number | null,
++    titleColorHex: string | null,
++    titleFont: string | null,
++    flowId: string | null,
++    language: string | null,
++    customer: Object | null,
++    payload: Object | null,
++    callback: (status: feedbackSDKCallback | undefined | string) => void
++  ): void;
+   track(
+     event: string,
+     payload?: Object,
+
+diff --git a/node_modules/feedback-react-native-sdk/src/index.tsx b/node_modules/feedback-react-native-sdk/src/index.tsx
+index 6d2d0b4..d41f2df 100644
+--- a/node_modules/feedback-react-native-sdk/src/index.tsx
++++ b/node_modules/feedback-react-native-sdk/src/index.tsx
+@@ -121,6 +121,73 @@ export function feedbackSDKShow(
+   );
+ }
+ 
++export function feedbackSDKShowStyled(
++  viewMode: feedbackSDKViewMode,
++  title: string | null,
++  titleFontSize: number | null,
++  titleColorHex: string | null,
++  titleFont: string | null,
++  flowId: string | null,
++  language: string | null,
++  customer: Map<string, any> | null,
++  payload: Map<string, string> | null,
++  callback: (status: feedbackSDKCallback | undefined | string) => void
++): void {
++  const viewModeValue: number = viewMode;
++  const titleFontSizeValue = isTurboModuleEnabled
++    ? titleFontSize ?? 0
++    : titleFontSize?.toString();
++  const customerValue = isTurboModuleEnabled
++    ? mapToObject(customer) ?? {}
++    : customer;
++  const payloadValue = isTurboModuleEnabled
++    ? mapToObject(payload) ?? {}
++    : payload;
++
++  // Back-compat: if native doesn’t have showStyled (older versions), fall back to show.
++  const native: any = FeedbackReactNativeSdk as any;
++  const hasShowStyled = typeof native?.showStyled === 'function';
++
++  const nativeCallback = (status: number) => {
++    if (callback != null) {
++      callback(Object.values(feedbackSDKCallback)[status]);
++    }
++  };
++
++  if (hasShowStyled) {
++    native.showStyled(
++      viewModeValue,
++      title,
++      titleFontSizeValue,
++      titleColorHex,
++      titleFont,
++      flowId,
++      language,
++      customerValue,
++      payloadValue,
++      nativeCallback
++    );
++    return;
++  }
++
++  // Fallback: older native versions only support title + fontSize.
++  FeedbackReactNativeSdk.show(
++    viewModeValue,
++    title,
++    titleFontSizeValue,
++    flowId,
++    language,
++    customerValue,
++    payloadValue,
++    nativeCallback
++  );
++}
++
+ export function feedbackSDKTrack(
+   event: string,
+   payload?: Map<string, string>,
+   customer?: Map<string, any>,
+
+diff --git a/node_modules/feedback-react-native-sdk/ios/FeedbackReactNativeSdk.mm b/node_modules/feedback-react-native-sdk/ios/FeedbackReactNativeSdk.mm
+index 83bdff1..c4d6a2b 100644
+--- a/node_modules/feedback-react-native-sdk/ios/FeedbackReactNativeSdk.mm
++++ b/node_modules/feedback-react-native-sdk/ios/FeedbackReactNativeSdk.mm
+@@ -5,6 +5,38 @@
+ @implementation FeedbackReactNativeSdk
+ RCT_EXPORT_MODULE()
+ 
+++ (UIColor * _Nullable)pf_colorFromHexString:(NSString * _Nullable)hex {
++    if (hex == nil) { return nil; }
++    NSString *cString = [[hex stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] uppercaseString];
++    if (cString.length == 0) { return nil; }
++    if ([cString hasPrefix:@"#"]) {
++        cString = [cString substringFromIndex:1];
++    }
++    if (cString.length != 6 && cString.length != 8) { return nil; }
++    unsigned int a = 255;
++    unsigned int r = 0, g = 0, b = 0;
++    NSScanner *scanner = [NSScanner scannerWithString:cString];
++    unsigned int hexValue = 0;
++    if (![scanner scanHexInt:&hexValue]) { return nil; }
++    if (cString.length == 8) {
++        a = (hexValue >> 24) & 0xFF;
++        r = (hexValue >> 16) & 0xFF;
++        g = (hexValue >> 8) & 0xFF;
++        b = hexValue & 0xFF;
++    } else {
++        r = (hexValue >> 16) & 0xFF;
++        g = (hexValue >> 8) & 0xFF;
++        b = hexValue & 0xFF;
++    }
++    return [UIColor colorWithRed:((CGFloat)r / 255.0f)
++                           green:((CGFloat)g / 255.0f)
++                            blue:((CGFloat)b / 255.0f)
++                           alpha:((CGFloat)a / 255.0f)];
++}
++
+ + (BOOL)requiresMainQueueSetup {
+     return YES;
+ }
+@@ -145,6 +177,126 @@ RCT_EXPORT_METHOD(show:(NSInteger)viewMode
+ }
+ #endif
+ 
++#ifdef RCT_NEW_ARCH_ENABLED
++RCT_EXPORT_METHOD(showStyled:(double)viewMode
++                  title:(nullable NSString *)title
++                  titleFontSize:(nonnull NSNumber *)titleFontSize
++                  titleColorHex:(nullable NSString *)titleColorHex
++                  titleFont:(nullable NSString *)titleFont
++                  flowId:(nullable NSString *)flowId
++                  language:(nullable NSString *)language
++                  customer:(nullable NSDictionary *)customer
++                  payload:(nullable NSDictionary *)payload
++                  callback:(RCTResponseSenderBlock)callback) {
++    __block BOOL showCallbackCalled = NO;
++    ViewMode mode = (ViewMode)viewMode;
++
++    NSMutableDictionary *attrsDictionary = [NSMutableDictionary dictionary];
++
++    CGFloat titleSize = [titleFontSize floatValue];
++    if (titleSize > 0) {
++        CGFloat weight = UIFontWeightRegular;
++        if (titleFont != nil) {
++            NSString *fontKey = [titleFont lowercaseString];
++            if ([fontKey isEqualToString:@"title"] || [fontKey isEqualToString:@"headline"] || [fontKey isEqualToString:@"bold"]) {
++                weight = UIFontWeightSemibold;
++            }
++        }
++        attrsDictionary[NSFontAttributeName] = [UIFont systemFontOfSize:titleSize weight:weight];
++    }
++
++    UIColor *color = [FeedbackReactNativeSdk pf_colorFromHexString:titleColorHex];
++    if (color != nil) {
++        attrsDictionary[NSForegroundColorAttributeName] = color;
++    }
++
++    NSMutableAttributedString *titleAttributedString = NULL;
++    if (title != NULL) {
++        titleAttributedString = [[NSMutableAttributedString alloc] initWithString:title attributes:attrsDictionary];
++    }
++
++    [Pisano showWithMode:mode
++                   title:titleAttributedString
++                  flowId:flowId
++                language:language
++                customer:customer
++                 payload:payload completion:^(enum CloseStatus status) {
++        NSNumber *statusNumber = [NSNumber numberWithInteger:(NSInteger)status];
++        if (showCallbackCalled) { return; }
++        showCallbackCalled = YES;
++        callback(@[statusNumber]);
++    }];
++}
++#else
++RCT_EXPORT_METHOD(showStyled:(NSInteger)viewMode
++                  title:(nullable NSString *)title
++                  titleFontSize:(nullable NSString *)titleFontSize
++                  titleColorHex:(nullable NSString *)titleColorHex
++                  titleFont:(nullable NSString *)titleFont
++                  flowId:(nullable NSString *)flowId
++                  language:(nullable NSString *)language
++                  customer:(nullable NSDictionary *)customer
++                  payload:(nullable NSDictionary *)payload
++                  callback:(RCTResponseSenderBlock)callback) {
++    __block BOOL showCallbackCalled = NO;
++    ViewMode mode = (ViewMode)viewMode;
++
++    NSMutableDictionary *attrsDictionary = [NSMutableDictionary dictionary];
++
++    if (titleFontSize != NULL) {
++        CGFloat titleSize = [titleFontSize floatValue];
++        CGFloat weight = UIFontWeightRegular;
++        if (titleFont != nil) {
++            NSString *fontKey = [titleFont lowercaseString];
++            if ([fontKey isEqualToString:@"title"] || [fontKey isEqualToString:@"headline"] || [fontKey isEqualToString:@"bold"]) {
++                weight = UIFontWeightSemibold;
++            }
++        }
++        attrsDictionary[NSFontAttributeName] = [UIFont systemFontOfSize:titleSize weight:weight];
++    }
++
++    UIColor *color = [FeedbackReactNativeSdk pf_colorFromHexString:titleColorHex];
++    if (color != nil) {
++        attrsDictionary[NSForegroundColorAttributeName] = color;
++    }
++
++    NSMutableAttributedString *titleAttributedString = NULL;
++    if (title != NULL) {
++        titleAttributedString = [[NSMutableAttributedString alloc] initWithString:title attributes:attrsDictionary];
++    }
++
++    [Pisano showWithMode:mode
++                   title:titleAttributedString
++                  flowId:flowId
++                language:language
++                customer:customer
++                 payload:payload completion:^(enum CloseStatus status) {
++        NSNumber *statusNumber = [NSNumber numberWithInteger:(NSInteger)status];
++        if (showCallbackCalled) { return; }
++        showCallbackCalled = YES;
++        callback(@[statusNumber]);
++    }];
++}
++#endif
++
+ #ifdef RCT_NEW_ARCH_ENABLED
+ RCT_EXPORT_METHOD(track:(nonnull NSString *)event
+                   payload:(nonnull NSDictionary *)payload
+                   customer:(nonnull NSDictionary *)customer
+
+diff --git a/node_modules/feedback-react-native-sdk/android/src/main/java/com/feedbackreactnativesdk/FeedbackReactNativeSdkModuleImpl.java b/node_modules/feedback-react-native-sdk/android/src/main/java/com/feedbackreactnativesdk/FeedbackReactNativeSdkModuleImpl.java
+index 51b4470..fb149f8 100644
+--- a/node_modules/feedback-react-native-sdk/android/src/main/java/com/feedbackreactnativesdk/FeedbackReactNativeSdkModuleImpl.java
++++ b/node_modules/feedback-react-native-sdk/android/src/main/java/com/feedbackreactnativesdk/FeedbackReactNativeSdkModuleImpl.java
+@@ -1,8 +1,10 @@
+ package com.feedbackreactnativesdk;
+ 
++import android.graphics.Color;
+ import android.util.Log;
+ 
+ import androidx.annotation.NonNull;
+ import androidx.annotation.Nullable;
+@@ -10,6 +12,7 @@ import com.facebook.react.bridge.Callback;
+ import com.facebook.react.bridge.Promise;
+ import com.facebook.react.bridge.ReactApplicationContext;
+ import com.facebook.react.bridge.ReadableMap;
++import java.lang.reflect.Constructor;
+ 
+ import java.util.HashMap;
+ 
+@@ -94,6 +97,90 @@ public class FeedbackReactNativeSdkModuleImpl  {
+ 
+   }
+ 
++  private static @Nullable Integer parseColorNullable(@Nullable String hex) {
++    if (hex == null) return null;
++    String v = hex.trim();
++    if (v.isEmpty()) return null;
++    if (!v.startsWith("#")) v = "#" + v;
++    try {
++      return Color.parseColor(v);
++    } catch (Exception e) {
++      return null;
++    }
++  }
++
++  private static @Nullable Title buildStyledTitle(@NonNull String title, @Nullable Float size, @Nullable Integer color, @Nullable String titleFont) {
++    try {
++      // Try to find a constructor that supports extra styling (color/font/etc).
++      for (Constructor<?> ctor : Title.class.getConstructors()) {
++        if (ctor.getParameterCount() == 6) {
++          Class<?>[] p = ctor.getParameterTypes();
++          // We only validate the first 2 args strictly, others can be nullable/any.
++          if (p[0] == String.class && (p[1] == Float.class || p[1] == float.class)) {
++            Object[] args = new Object[] { title, size, color, titleFont, null, null };
++            try {
++              return (Title) ctor.newInstance(args);
++            } catch (Exception ignored) {
++              // keep searching
++            }
++          }
++        }
++      }
++    } catch (Exception ignored) {
++      // fallback below
++    }
++
++    // Fallback to the known constructor signature already used in this SDK version.
++    try {
++      return new Title(title, size, null, null, null, null);
++    } catch (Exception ignored) {
++      return null;
++    }
++  }
++
++  public static void showStyled(
++          Integer viewMode,
++          @Nullable String title,
++          @Nullable String titleFontSize,
++          @Nullable String titleColorHex,
++          @Nullable String titleFont,
++          @Nullable String flowId,
++          @Nullable String language,
++          @Nullable ReadableMap customer,
++          @Nullable ReadableMap payload,
++          @Nullable Callback callback
++  ) {
++    try {
++      showCallback = callback;
++      HashMap<String, String> payloadHashMap = PisanoCustomerHelper.convertReadableMapToHashMap(payload);
++
++      ViewMode flowViewMode = ViewMode.parse(viewMode);
++      Title customTitle = null;
++
++      if (title != null && !title.isEmpty()) {
++        Float size = null;
++        try {
++          size = titleFontSize != null ? Float.parseFloat(titleFontSize) : null;
++        } catch (Exception ignored) {
++          size = null;
++        }
++        Integer color = parseColorNullable(titleColorHex);
++        customTitle = buildStyledTitle(title, size, color, titleFont);
++      }
++
++      PisanoSDK.INSTANCE.show(
++              flowViewMode,
++              customTitle,
++              flowId,
++              language,
++              payloadHashMap,
++              PisanoCustomerHelper.convertToPisanoCustomer(customer)
++      );
++    } catch (Exception e) {
++      Log.e(TAG, e.toString());
++    }
++  }
++
+   public static void track(@NonNull String event, @Nullable ReadableMap payload, @Nullable ReadableMap customer, @Nullable String language, @NonNull Callback callback) {
+     trackCallback = null;
+     trackCallback = callback;
+     HashMap<String, String> payloadHashMap = (HashMap<String, String>)payload;
+
+diff --git a/node_modules/feedback-react-native-sdk/android/src/turbo/FeedbackReactNativeSdkModule.java b/node_modules/feedback-react-native-sdk/android/src/turbo/FeedbackReactNativeSdkModule.java
+index 3cdd623..3185f23 100644
+--- a/node_modules/feedback-react-native-sdk/android/src/turbo/FeedbackReactNativeSdkModule.java
++++ b/node_modules/feedback-react-native-sdk/android/src/turbo/FeedbackReactNativeSdkModule.java
+@@ -46,6 +46,22 @@ public class FeedbackReactNativeSdkModule extends ReactContextBaseJavaModule {
+   public static void show(Integer viewMode, @Nullable String title, @Nullable String titleFontSize, @Nullable String flowId, @Nullable String language, @Nullable ReadableMap customer, @Nullable ReadableMap payload, @NonNull Callback callback) {
+     FeedbackReactNativeSdkModuleImpl.show(viewMode, title, titleFontSize, flowId, language, customer, payload, callback);
+   }
+ 
++  @ReactMethod
++  public static void showStyled(
++          Integer viewMode,
++          @Nullable String title,
++          @Nullable String titleFontSize,
++          @Nullable String titleColorHex,
++          @Nullable String titleFont,
++          @Nullable String flowId,
++          @Nullable String language,
++          @Nullable ReadableMap customer,
++          @Nullable ReadableMap payload,
++          @NonNull Callback callback
++  ) {
++    FeedbackReactNativeSdkModuleImpl.showStyled(viewMode, title, titleFontSize, titleColorHex, titleFont, flowId, language, customer, payload, callback);
++  }
++
+   @ReactMethod
+   public static void track(@NonNull String event, @Nullable ReadableMap payload, @Nullable ReadableMap customer, @Nullable String language, @NonNull Callback callback) {
+     FeedbackReactNativeSdkModuleImpl.track(event, payload, customer, language, callback);
+   }
+
+diff --git a/node_modules/feedback-react-native-sdk/android/src/legacy/FeedbackReactNativeSdkModule.java b/node_modules/feedback-react-native-sdk/android/src/legacy/FeedbackReactNativeSdkModule.java
+index 3cdd623..3185f23 100644
+--- a/node_modules/feedback-react-native-sdk/android/src/legacy/FeedbackReactNativeSdkModule.java
++++ b/node_modules/feedback-react-native-sdk/android/src/legacy/FeedbackReactNativeSdkModule.java
+@@ -46,6 +46,22 @@ public class FeedbackReactNativeSdkModule extends ReactContextBaseJavaModule {
+   public static void show(Integer viewMode, @Nullable String title, @Nullable String titleFontSize, @Nullable String flowId, @Nullable String language, @Nullable ReadableMap customer, @Nullable ReadableMap payload, @NonNull Callback callback) {
+     FeedbackReactNativeSdkModuleImpl.show(viewMode, title, titleFontSize, flowId, language, customer, payload, callback);
+   }
+ 
++  @ReactMethod
++  public static void showStyled(
++          Integer viewMode,
++          @Nullable String title,
++          @Nullable String titleFontSize,
++          @Nullable String titleColorHex,
++          @Nullable String titleFont,
++          @Nullable String flowId,
++          @Nullable String language,
++          @Nullable ReadableMap customer,
++          @Nullable ReadableMap payload,
++          @NonNull Callback callback
++  ) {
++    FeedbackReactNativeSdkModuleImpl.showStyled(viewMode, title, titleFontSize, titleColorHex, titleFont, flowId, language, customer, payload, callback);
++  }
++
+   @ReactMethod
+   public static void track(@NonNull String event, @Nullable ReadableMap payload, @Nullable ReadableMap customer, @Nullable String language, @NonNull Callback callback) {
+     FeedbackReactNativeSdkModuleImpl.track(event, payload, customer, language, callback);
+   }
+
+diff --git a/node_modules/feedback-react-native-sdk/lib/typescript/NativeFeedbackReactNativeSdk.d.ts b/node_modules/feedback-react-native-sdk/lib/typescript/NativeFeedbackReactNativeSdk.d.ts
+index c161447..bd88261 100644
+--- a/node_modules/feedback-react-native-sdk/lib/typescript/NativeFeedbackReactNativeSdk.d.ts
++++ b/node_modules/feedback-react-native-sdk/lib/typescript/NativeFeedbackReactNativeSdk.d.ts
+@@ -17,6 +17,7 @@ export interface Spec extends TurboModule {
+     debugMode(debugMode: boolean): void;
+     boot(appId: string, accessKey: string, apiUrl: string, feedbackUrl: string, eventUrl?: string, callback?: (status: feedbackSDKCallback | undefined | string) => void): void;
+     show(viewMode: feedbackSDKViewMode, title: string | null, titleFontSize: number | null, flowId: string | null, language: string | null, customer: Object | null, payload: Object | null, callback: (status: feedbackSDKCallback | undefined | string) => void): void;
++    showStyled(viewMode: feedbackSDKViewMode, title: string | null, titleFontSize: number | null, titleColorHex: string | null, titleFont: string | null, flowId: string | null, language: string | null, customer: Object | null, payload: Object | null, callback: (status: feedbackSDKCallback | undefined | string) => void): void;
+     track(event: string, payload?: Object, customer?: Object, language?: string, callback?: (status: string) => void): void;
+     clear(): void;
+ }
+
+diff --git a/node_modules/feedback-react-native-sdk/lib/typescript/index.d.ts b/node_modules/feedback-react-native-sdk/lib/typescript/index.d.ts
+index 3e6e3ee..6ab54d1 100644
+--- a/node_modules/feedback-react-native-sdk/lib/typescript/index.d.ts
++++ b/node_modules/feedback-react-native-sdk/lib/typescript/index.d.ts
+@@ -14,6 +14,7 @@ export declare enum feedbackSDKCallback {
+ }
+ export declare function feedbackSDKDebugMode(debugMode: boolean): void;
+ export declare function feedbackSDKBoot(appId: string, accessKey: string, apiUrl: string, feedbackUrl: string, eventUrl?: string, callback?: (status: string) => void): void;
+ export declare function feedbackSDKShow(viewMode: feedbackSDKViewMode, title: string | null, titleFontSize: number | null, flowId: string | null, language: string | null, customer: Map<string, any> | null, payload: Map<string, string> | null, callback: (status: feedbackSDKCallback | undefined | string) => void): void;
++export declare function feedbackSDKShowStyled(viewMode: feedbackSDKViewMode, title: string | null, titleFontSize: number | null, titleColorHex: string | null, titleFont: string | null, flowId: string | null, language: string | null, customer: Map<string, any> | null, payload: Map<string, string> | null, callback: (status: feedbackSDKCallback | undefined | string) => void): void;
+ export declare function feedbackSDKTrack(event: string, payload?: Map<string, string>, customer?: Map<string, any>, language?: string, callback?: (status: string) => void): void;
+ export declare function feedbackSDKClear(): void;
