@@ -7,11 +7,10 @@
     "ios": "react-native run-ios",
     "start": "react-native start",
     "test": "jest",
-    "lint": "eslint .",
-    "postinstall": "patch-package"
+    "lint": "eslint ."
   },
   "dependencies": {
-    "feedback-react-native-sdk": "^0.2.7",
+    "feedback-react-native-sdk": "^0.2.8",
     "react": "19.0.0",
     "react-native": "0.79.0"
   },
@@ -26,7 +25,6 @@
     "eslint": "^7.32.0",
     "jest": "^26.6.3",
     "metro-react-native-babel-preset": "0.72.3",
-    "patch-package": "^8.0.1",
     "react-test-renderer": "19.0.0"
   },
   "jest": {

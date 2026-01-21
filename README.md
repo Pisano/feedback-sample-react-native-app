@@ -79,13 +79,7 @@ RN 0.79 moved autolinking/new-arch wiring into the React Native Gradle Plugin. I
 - `Plugin with id 'com.facebook.react' not found.`
 - `compileSdkVersion is not specified.`
 
-This sample app applies a `patch-package` patch that fixes `feedback-react-native-sdk/android/build.gradle` for RN 0.79+.
-
-If you need the same fix in your own app repo:
-
-1) Add `patch-package`
-2) Copy the patch from this repo’s `patches/feedback-react-native-sdk+0.2.7.patch`
-3) Add `postinstall` → `patch-package`
+If you run into these, update to the latest `feedback-react-native-sdk` version (this sample uses **0.2.8**).
 
 ## 🚀 Quick Start (Boot / Show / Track / Clear)
 
@@ -134,6 +128,28 @@ feedbackSDKShow(
 );
 ```
 
+#### Customer/payload keys (important)
+
+- **Use `camelCase` keys** when sending `customer` and `payload`.
+- **Do not use `snake_case`** (e.g. `phone_number`) unless your Pisano project explicitly expects that.
+
+Examples:
+
+```js
+// ✅ Good (camelCase)
+new Map([
+  ['externalId', 'USER-123'],
+  ['phoneNumber', '905551112233'],
+  ['email', 'test@test.com'],
+]);
+
+// ❌ Avoid (snake_case)
+new Map([
+  ['external_id', 'USER-123'],
+  ['phone_number', '905551112233'],
+]);
+```
+
 **Show method parameters (`feedbackSDKShow`)**
 
 | Parameter | Type | Required | Description |
@@ -143,42 +159,6 @@ feedbackSDKShow(
 | `titleFontSize` | `number \| null` | ❌ | Title font size |
 | `flowId` | `string \| null` | ❌ | Flow ID (send `null` for default flow) |
 | `language` | `string \| null` | ❌ | Language code (`en`, `tr`, …) |
-| `customer` | `Map<string, any> \| null` | ❌ | Customer properties |
-| `payload` | `Map<string, string> \| null` | ❌ | Transactional/prefill data |
-| `callback` | `(status) => void` | ✅ | Returns a `feedbackSDKCallback` value |
-
-#### Optional: style the title (color/font)
-
-This sample app also provides **`feedbackSDKShowStyled`** (via `patch-package`) to pass title styling to native where supported.
-
-```js
-import { feedbackSDKShowStyled, feedbackSDKViewMode } from 'feedback-react-native-sdk';
-
-feedbackSDKShowStyled(
-  feedbackSDKViewMode.BottomSheet,
-  'We Value Your Feedback',
-  16,
-  '#2D2D2D', // titleColorHex
-  'Title',   // titleFont ("Title" | "Body")
-  null,
-  'en',
-  new Map([['externalId', 'USER-123']]),
-  new Map([['source', 'react-native-app']]),
-  (result) => console.log('Show result:', result)
-);
-```
-
-**Show method parameters (`feedbackSDKShowStyled`)**
-
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `viewMode` | `feedbackSDKViewMode` | ✅ | Widget presentation mode |
-| `title` | `string \| null` | ❌ | Custom widget title |
-| `titleFontSize` | `number \| null` | ❌ | Title font size |
-| `titleColorHex` | `string \| null` | ❌ | Hex color (e.g. `#RRGGBB` or `#AARRGGBB`) |
-| `titleFont` | `string \| null` | ❌ | Title font key (sample uses `"Title"` / `"Body"`) |
-| `flowId` | `string \| null` | ❌ | Flow ID |
-| `language` | `string \| null` | ❌ | Language code |
 | `customer` | `Map<string, any> \| null` | ❌ | Customer properties |
 | `payload` | `Map<string, string> \| null` | ❌ | Transactional/prefill data |
 | `callback` | `(status) => void` | ✅ | Returns a `feedbackSDKCallback` value |
