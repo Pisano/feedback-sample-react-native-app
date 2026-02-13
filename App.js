@@ -16,7 +16,7 @@ import {
   feedbackSDKBoot,
   feedbackSDKClear,
   feedbackSDKDebugMode,
-  feedbackSDKShowStyled,
+  feedbackSDKShow,
   feedbackSDKViewMode,
 } from 'feedback-react-native-sdk';
 import {PISANO_CONFIG} from './pisano.config';
@@ -33,7 +33,6 @@ const loadConfig = () => PISANO_CONFIG ?? DEFAULTS;
 
 const Logo = () => (
   <View style={styles.logoWrap}>
-    {/* No bundled Pisano logo asset in this repo; keeping a clean text logo. */}
     <Text style={styles.logoText}>Pisano</Text>
   </View>
 );
@@ -176,35 +175,31 @@ export default function App() {
   const cfg = React.useMemo(() => loadConfig(), []);
   const bg = useAnimatedBackground();
 
-  const [screen, setScreen] = React.useState('splash'); // splash | main | detail
+  const [screen, setScreen] = React.useState('splash');
 
-  // Form fields (UIKit sample style)
   const [name, setName] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [phone, setPhone] = React.useState('');
   const [externalId, setExternalId] = React.useState('');
   const [customTitle, setCustomTitle] = React.useState('');
-  const [viewMode, setViewMode] = React.useState('Default'); // Default | BottomSheet
-  const [titleColor, setTitleColor] = React.useState('#BDBDBD'); // UI-only
-  const [titleFont, setTitleFont] = React.useState('Title'); // Title | Body (UI-only mapping to fontSize)
+  const [viewMode, setViewMode] = React.useState('Default');
+  const [titleColor, setTitleColor] = React.useState('#BDBDBD');
+  const [titleFont, setTitleFont] = React.useState('Title');
 
   const [status, setStatus] = React.useState('-');
   const [booted, setBooted] = React.useState(false);
 
   const setStatusLine = (s) => setStatus(String(s ?? '-'));
 
-  // Auto-splash
   React.useEffect(() => {
     const t = setTimeout(() => setScreen('main'), 700);
     return () => clearTimeout(t);
   }, []);
 
-  // Enable SDK debug logs in dev by default (UIKit sample toggles this via DEBUG).
   React.useEffect(() => {
     feedbackSDKDebugMode(true);
   }, []);
 
-  // Boot once (UIKit sample does this at app start in AppDelegate)
   React.useEffect(() => {
     if (booted) return;
     const appId = (cfg.appId ?? '').trim();
@@ -233,13 +228,9 @@ export default function App() {
     const customer = new Map();
     if (name.trim()) customer.set('name', name.trim());
     if (email.trim()) customer.set('email', email.trim());
-    if (phone.trim()) customer.set('phone', phone.trim());
+    if (phone.trim()) customer.set('phoneNumber', phone.trim());
     if (externalId.trim()) customer.set('externalId', externalId.trim());
 
-    // Payload is optional, but we send UI selections so flows/analytics can use them.
-    // We send UI selections both as:
-    // - native title styling (via `feedbackSDKShowStyled` on iOS)
-    // - payload keys for flows/analytics
     const payload = new Map();
     payload.set('uiTitleColor', titleColor); // hex
     payload.set('uiTitleFont', titleFont); // Title | Body
@@ -251,19 +242,19 @@ export default function App() {
     // Title UI -> SDK
     const title = customTitle.trim() ? customTitle.trim() : null;
     const titleFontSize = titleFont === 'Title' ? 20 : 16;
+    const flowId = (cfg.flowId ?? '').trim() ? (cfg.flowId ?? '').trim() : null;
+    const language = (cfg.language ?? '').trim() ? (cfg.language ?? '').trim() : 'en';
 
-    feedbackSDKShowStyled(
+    feedbackSDKShow(
       mode,
       title,
       titleFontSize,
-      titleColor,
-      titleFont,
-      null,
-      'en',
+      flowId,
+      language,
       customer,
       payload,
       (result) => {
-      setStatusLine(`Show: ${result}`);
+        setStatusLine(`Show: ${result}`);
       }
     );
   };
