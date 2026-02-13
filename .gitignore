@@ -1,13 +1,10 @@
-# OSX
-#
+# macOS
 .DS_Store
 
 # Xcode
-#
 build/
 ios/build/
 ios/DerivedData/
-ios/build/DerivedData/
 *.pbxuser
 !default.pbxuser
 *.mode1v3
@@ -25,10 +22,9 @@ DerivedData
 *.xcuserstate
 ios/.xcode.env.local
 
-# Android/IntelliJ
-#
-build/
+# Android
 android/app/build/
+android/app/src/main/assets/
 .idea
 .gradle
 local.properties
@@ -36,49 +32,23 @@ local.properties
 *.hprof
 .cxx/
 
-# node.js
-#
+# Node
 node_modules/
-.npm-debug.log*
-npm-debug.log
+npm-debug.log*
 yarn-error.log
 
-# BUCK
-buck-out/
-\.buckd/
+# Bundle artifacts
+*.jsbundle
 *.keystore
 !debug.keystore
 
-# fastlane
-#
-# It is recommended to not store the screenshots in the git repo. Instead, use fastlane to re-generate the
-# screenshots whenever they are needed.
-# For more information about the recommended setup visit:
-# https://docs.fastlane.tools/best-practices/source-control/
-
-**/fastlane/report.xml
-**/fastlane/Preview.html
-**/fastlane/screenshots
-**/fastlane/test_output
-
-# Bundle artifact
-*.jsbundle
-
-# Local Pisano config (do not commit secrets)
-# Demo credentials live in `pisano.config.js` / `pisano.config.example.js`.
-# If you want private overrides, use these (ignored):
-pisano.config.local.js
-pisano.config.local.ts
-
-# Android bundle outputs (generated)
-android/app/src/main/assets/
-
-# IDE / tooling
-.vscode/
-
-# Local recordings / media
-scripts/*.mp4
-
-# Ruby / CocoaPods
+# CocoaPods
 /ios/Pods/
 /vendor/bundle/
+
+# IDE
+.vscode/
+.cursor/
+
+# Pisano config (contains credentials)
+pisano.config.js

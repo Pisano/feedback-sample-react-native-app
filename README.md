@@ -1,193 +1,112 @@
-# Pisano Feedback (React Native) — SDK Integration Sample
+# Pisano Feedback SDK - React Native Sample App
 
-This repository is a **React Native sample app** showing how to integrate and use **Pisano Feedback** via `feedback-react-native-sdk` in a real app (iOS + Android).
+A sample React Native application demonstrating how to integrate **[feedback-react-native-sdk](https://www.npmjs.com/package/feedback-react-native-sdk)** on iOS and Android.
 
-> The **native SDK source code is not in this repo**. This repo shows **how to integrate it**.
+## Requirements
 
-## 📋 Table of Contents
+- Node 18+
+- React Native 0.79+
+- iOS: Xcode 15+, CocoaPods
+- Android: JDK 17, Android SDK
 
-- [Requirements](#-requirements)
-- [Install the SDK](#-install-the-sdk)
-- [iOS setup](#-ios-setup)
-- [Android setup](#-android-setup)
-- [Quick Start (Boot / Show / Track / Clear)](#-quick-start-boot--show--track--clear)
-- [Troubleshooting](#-troubleshooting)
-- [Run this sample app](#-run-this-sample-app)
-
-## 📱 Requirements
-
-- **Node**: 18+
-- **React Native**: 0.79.x (this sample is on 0.79)
-- **iOS**: Xcode 15+, CocoaPods
-- **Android**: JDK 17, Android SDK / Android Studio
-
-## 📦 Install the SDK
-
-In your app repo:
+## Setup
 
 ```sh
-npm install feedback-react-native-sdk
+npm install
 ```
 
-## 🍎 iOS setup
-
-From your app repo:
+Create your local config:
 
 ```sh
-cd ios
-pod install
+cp pisano.config.example.js pisano.config.js
 ```
 
-### `use_frameworks!` + New Architecture
+Fill in `appId`, `accessKey`, `code`, and URLs from the [Pisano dashboard](https://dashboard.pisano.co).
 
-If your iOS project uses `use_frameworks!`, use **static linkage**:
+### iOS
 
-```ruby
-use_frameworks! :linkage => :static
+```sh
+cd ios && pod install && cd ..
+npx react-native run-ios
 ```
 
-If you run with **New Architecture enabled**, ensure your pods are generated with it (this sample sets it in `ios/Podfile`):
+### Android
 
-```ruby
-ENV['RCT_NEW_ARCH_ENABLED'] = '1'
+```sh
+npx react-native run-android
 ```
 
-### Info.plist permissions
+> Physical device over USB: run `adb reverse tcp:8081 tcp:8081` before starting.
 
-If your flows use attachments (camera / photo library), add:
+## SDK Usage
 
-- `NSCameraUsageDescription`
-- `NSPhotoLibraryUsageDescription`
-- `NSPhotoLibraryAddUsageDescription`
+### Boot
 
-## 🤖 Android setup
-
-### New Architecture toggle (SDK TurboModule)
-
-If your app uses RN New Architecture and you want the SDK’s TurboModule implementation, add to:
-
-- `android/gradle.properties`
-
-```properties
-FeedbackReactNativeSdk_newArchEnabled=true
-```
-
-### RN 0.79 Gradle plugin note (sample patch)
-
-RN 0.79 moved autolinking/new-arch wiring into the React Native Gradle Plugin. If you hit Gradle errors inside the SDK like:
-
-- `Plugin with id 'com.facebook.react' not found.`
-- `compileSdkVersion is not specified.`
-
-If you run into these, update to the latest `feedback-react-native-sdk` version (this sample uses **0.2.8**).
-
-## 🚀 Quick Start (Boot / Show / Track / Clear)
-
-### 1) Boot (initialize SDK)
-
-Call once (e.g. at app start) before showing the widget:
+Call once at app start to initialize the SDK:
 
 ```js
 import { feedbackSDKBoot } from 'feedback-react-native-sdk';
 
 feedbackSDKBoot(
-  'YOUR_APP_ID',
-  'YOUR_ACCESS_KEY',
-  'https://api.pisano.co',
-  'https://web.pisano.co/web_feedback',
-  undefined, // eventUrl (optional)
-  (status) => console.log('Boot status:', status)
+  appId,       // Application ID
+  accessKey,   // Access key
+  code,        // Channel code (e.g. "PSN-xxxxx")
+  apiUrl,      // API base URL
+  feedbackUrl, // Feedback widget URL
+  eventUrl,    // Event URL (optional)
+  (status) => console.log('Boot:', status)
 );
 ```
 
-**Boot method parameters**
+| Parameter     | Type     | Required | Description                  |
+| ------------- | -------- | -------- | ---------------------------- |
+| `appId`       | `string` | Yes      | Application ID               |
+| `accessKey`   | `string` | Yes      | Access key                   |
+| `code`        | `string` | Yes      | Channel code (e.g. PSN-xxxxx)|
+| `apiUrl`      | `string` | Yes      | API base URL                 |
+| `feedbackUrl` | `string` | Yes      | Feedback widget URL          |
+| `eventUrl`    | `string` | No       | Event/tracking URL           |
+| `callback`    | `fn`     | No       | Status callback              |
 
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `appId` | `string` | ✅ | Application ID (from Pisano dashboard) |
-| `accessKey` | `string` | ✅ | Access key (from Pisano dashboard) |
-| `apiUrl` | `string` | ✅ | Base API URL |
-| `feedbackUrl` | `string` | ✅ | Base URL for feedback/web widget |
-| `eventUrl` | `string` | ❌ | Optional event/tracking URL |
-| `callback` | `(status) => void` | ❌ | Receives SDK close/status string |
+### Show
 
-### 2) Show the widget
+Display the feedback widget:
 
 ```js
 import { feedbackSDKShow, feedbackSDKViewMode } from 'feedback-react-native-sdk';
 
 feedbackSDKShow(
-  feedbackSDKViewMode.BottomSheet, // or feedbackSDKViewMode.Default
-  'We Value Your Feedback',        // title (string | null)
-  16,                              // titleFontSize (number | null)
-  null,                            // flowId (string | null)
-  'en',                            // language (string | null)
-  new Map([['externalId', 'USER-123']]),     // customer (Map | null)
-  new Map([['source', 'react-native-app']]), // payload  (Map | null)
-  (result) => console.log('Show result:', result)
+  feedbackSDKViewMode.Default, // or .BottomSheet
+  'Title',                     // title (string | null)
+  16,                          // titleFontSize (number | null)
+  null,                        // code override (string | null)
+  'en',                        // language (string | null)
+  new Map([['email', 'user@example.com']]), // customer
+  new Map([['source', 'app']]),             // payload
+  (result) => console.log('Show:', result)
 );
 ```
 
-#### Customer/payload keys (important)
+| Parameter       | Type                    | Required | Description                          |
+| --------------- | ----------------------- | -------- | ------------------------------------ |
+| `viewMode`      | `feedbackSDKViewMode`   | Yes      | `Default` or `BottomSheet`           |
+| `title`         | `string \| null`        | No       | Custom widget title                  |
+| `titleFontSize` | `number \| null`        | No       | Title font size                      |
+| `code`          | `string \| null`        | No       | Override the boot code for this call |
+| `language`      | `string \| null`        | No       | Language code (`en`, `tr`, ...)      |
+| `customer`      | `Map<string, any>`      | No       | Customer properties (camelCase keys) |
+| `payload`       | `Map<string, string>`   | No       | Payload data                         |
+| `callback`      | `fn`                    | Yes      | Returns `feedbackSDKCallback` value  |
 
-- **Use `camelCase` keys** when sending `customer` and `payload`.
-- **Do not use `snake_case`** (e.g. `phone_number`) unless your Pisano project explicitly expects that.
-
-Examples:
-
-```js
-// ✅ Good (camelCase)
-new Map([
-  ['externalId', 'USER-123'],
-  ['phoneNumber', '905551112233'],
-  ['email', 'test@test.com'],
-]);
-
-// ❌ Avoid (snake_case)
-new Map([
-  ['external_id', 'USER-123'],
-  ['phone_number', '905551112233'],
-]);
-```
-
-**Show method parameters (`feedbackSDKShow`)**
-
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `viewMode` | `feedbackSDKViewMode` | ✅ | Widget presentation mode (`Default` / `BottomSheet`) |
-| `title` | `string \| null` | ❌ | Custom widget title |
-| `titleFontSize` | `number \| null` | ❌ | Title font size |
-| `flowId` | `string \| null` | ❌ | Flow ID (send `null` for default flow) |
-| `language` | `string \| null` | ❌ | Language code (`en`, `tr`, …) |
-| `customer` | `Map<string, any> \| null` | ❌ | Customer properties |
-| `payload` | `Map<string, string> \| null` | ❌ | Transactional/prefill data |
-| `callback` | `(status) => void` | ✅ | Returns a `feedbackSDKCallback` value |
-
-### 3) Track an event (optional)
+### Track
 
 ```js
 import { feedbackSDKTrack } from 'feedback-react-native-sdk';
 
-feedbackSDKTrack(
-  'purchase_completed',
-  new Map([['amount', '49.99']]),
-  new Map([['externalId', 'USER-123']]),
-  'en',
-  (status) => console.log('Track status:', status)
-);
+feedbackSDKTrack('purchase_completed', payload, customer, 'en', (s) => console.log(s));
 ```
 
-**Track method parameters**
-
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `event` | `string` | ✅ | Event name (e.g. `purchase_completed`) |
-| `payload` | `Map<string, string> \| undefined` | ❌ | Event payload |
-| `customer` | `Map<string, any> \| undefined` | ❌ | Customer properties |
-| `language` | `string \| undefined` | ❌ | Language code |
-| `callback` | `(status) => void` | ❌ | Completion callback (string) |
-
-### 4) Clear (optional)
+### Clear
 
 ```js
 import { feedbackSDKClear } from 'feedback-react-native-sdk';
@@ -195,80 +114,31 @@ import { feedbackSDKClear } from 'feedback-react-native-sdk';
 feedbackSDKClear();
 ```
 
-**Clear method parameters**
+## Enums
 
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| *(none)* |  |  | Clears SDK state (e.g. cached customer/session) |
+**`feedbackSDKViewMode`**: `Default` | `BottomSheet`
 
-### Enums
+**`feedbackSDKCallback`**:
 
-**`feedbackSDKViewMode`**
+| Value                      | Description                    |
+| -------------------------- | ------------------------------ |
+| `Closed`                   | Widget closed                  |
+| `SendFeedback`             | Feedback submitted             |
+| `Outside`                  | Tapped outside widget          |
+| `Opened`                   | Widget opened                  |
+| `DisplayOnce`              | Display-once rule triggered    |
+| `PreventMultipleFeedback`  | Multiple feedback prevented    |
+| `QuotaExceeded`            | Channel quota exceeded         |
+| `DisplayRateLimited`       | Display rate limited           |
+| `SurveyPassive`            | Channel is passive             |
+| `HealthCheckFailed`        | SDK initialization failed      |
 
-| Value | Description |
-| --- | --- |
-| `feedbackSDKViewMode.Default` | Default presentation |
-| `feedbackSDKViewMode.BottomSheet` | Bottom sheet presentation |
+## Troubleshooting
 
-**`feedbackSDKCallback`**
+**Android: "Unable to load script"**
+- Run `adb reverse tcp:8081 tcp:8081`
+- Make sure Metro is running: `npx react-native start`
 
-| Value | Description |
-| --- | --- |
-| `None` | No-op / unknown |
-| `Closed` | Widget closed |
-| `SendFeedback` | Feedback sent |
-| `Outside` | Closed by tapping outside |
-| `Opened` | Widget opened |
-| `DisplayOnce` | Display-once rule triggered |
-| `PreventMultipleFeedback` | Prevent-multiple-feedback rule triggered |
-| `QuotaExceeded` | Quota exceeded |
-
-### HealthCheck?
-
-The React Native wrapper (`feedback-react-native-sdk`) **does not export a `healthCheck` API** at the moment (unlike the native iOS sample app).
-
-## 📸 Screenshots
-
-Add the following screenshots under `docs/screenshots/` and they will render here:
-
-### Main (Getting Started)
-
-![Main screen](docs/screenshots/main.png)
-
-### Detail (Form)
-
-![Detail screen](docs/screenshots/detail.png)
-
-### Widget (SDK UI)
-
-![Widget screen](docs/screenshots/widget.png)
-
-## 🔧 Troubleshooting
-
-### Android: “Unable to load script… make sure you are either running Metro…”
-
-- Start Metro: `npx react-native start`
-- Physical device over USB: `adb reverse tcp:8081 tcp:8081`
-
-### iOS: “Bundle React Native code and images” fails
-
-- Restart Metro
-- Re-run pods:
-
-```sh
-cd ios
-pod install
-```
-
-## ▶️ Run this sample app
-
-```sh
-npm install
-npm run start
-```
-
-Then:
-
-- iOS: `npm run ios`
-- Android: `npm run android`
-
+**iOS: Build fails after SDK update**
+- `cd ios && pod install`
+- Clean build folder in Xcode (Cmd+Shift+K)
