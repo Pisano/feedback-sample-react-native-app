@@ -24,12 +24,20 @@ import {PISANO_CONFIG} from './pisano.config';
 const DEFAULTS = {
   appId: 'YOUR_APP_ID',
   accessKey: 'YOUR_ACCESS_KEY',
+  code: 'YOUR_CODE',
   apiUrl: 'https://api.pisano.co',
   feedbackUrl: 'https://web.pisano.co/web_feedback',
   eventUrl: '',
+  language: 'en',
+  title: 'We Value Your Feedback',
+  titleFontSize: 16,
 };
 
 const loadConfig = () => PISANO_CONFIG ?? DEFAULTS;
+
+// ---------------------------------------------------------------------------
+// UI Components
+// ---------------------------------------------------------------------------
 
 const Logo = () => (
   <View style={styles.logoWrap}>
@@ -45,8 +53,7 @@ const PrimaryButton = ({title, onPress, disabled}) => (
       styles.primaryButton,
       disabled && styles.primaryButtonDisabled,
       pressed && !disabled && {opacity: 0.9},
-    ]}
-  >
+    ]}>
     <Text style={styles.primaryButtonText}>{title}</Text>
   </Pressable>
 );
@@ -61,98 +68,18 @@ const Segmented = ({left, right, value, onChange}) => (
   <View style={styles.segmentWrap}>
     <Pressable
       onPress={() => onChange(left.value)}
-      style={[styles.segmentItem, value === left.value && styles.segmentItemActive]}
-    >
+      style={[styles.segmentItem, value === left.value && styles.segmentItemActive]}>
       <Text style={[styles.segmentText, value === left.value && styles.segmentTextActive]}>
         {left.label}
       </Text>
     </Pressable>
     <Pressable
       onPress={() => onChange(right.value)}
-      style={[styles.segmentItem, value === right.value && styles.segmentItemActive]}
-    >
+      style={[styles.segmentItem, value === right.value && styles.segmentItemActive]}>
       <Text style={[styles.segmentText, value === right.value && styles.segmentTextActive]}>
         {right.label}
       </Text>
     </Pressable>
-  </View>
-);
-
-const ColorSwatches = ({colors, value, onChange}) => (
-  <View style={styles.swatchRow}>
-    {colors.map((c) => {
-      const selected = value === c;
-      return (
-        <Pressable
-          key={c}
-          onPress={() => onChange(c)}
-          style={[
-            styles.swatch,
-            {backgroundColor: c},
-            selected && styles.swatchSelected,
-          ]}
-        >
-          {selected ? <Text style={styles.swatchCheck}>✓</Text> : null}
-        </Pressable>
-      );
-    })}
-  </View>
-);
-
-function useAnimatedBackground() {
-  const progress = React.useRef(new Animated.Value(0)).current;
-  const [pair, setPair] = React.useState([0, 1]);
-  const colors = React.useMemo(
-    () => ['#F1F8FF', '#F2ECFF', '#EFFAF2', '#FFF6E7', '#EEF7F7'],
-    []
-  );
-
-  React.useEffect(() => {
-    let cancelled = false;
-    const loop = () => {
-      progress.setValue(0);
-      Animated.timing(progress, {
-        toValue: 1,
-        duration: 2800,
-        easing: Easing.inOut(Easing.quad),
-        useNativeDriver: false,
-      }).start(({finished}) => {
-        if (!finished || cancelled) return;
-        setPair(([a, b]) => {
-          const next = (b + 1) % colors.length;
-          return [b, next];
-        });
-      });
-    };
-    loop();
-    const id = setInterval(loop, 2800);
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-    };
-  }, [colors.length, progress]);
-
-  const backgroundColor = progress.interpolate({
-    inputRange: [0, 1],
-    outputRange: [colors[pair[0]], colors[pair[1]]],
-  });
-
-  return {backgroundColor};
-}
-
-const GettingStartedCard = ({onPress}) => (
-  <View style={styles.heroCard}>
-    <Text style={styles.heroH1}>Feedback</Text>
-    <Text style={styles.heroH2}>
-      forms <Text style={styles.heroSlash}>\\</Text> flows
-    </Text>
-    <Text style={styles.heroH1}>for business</Text>
-
-    <View style={{marginTop: 18}}>
-      <PrimaryButton title="Getting Started" onPress={onPress} />
-    </View>
-
-    <Text style={styles.heroCaption}>Interact with flows made by Pisano</Text>
   </View>
 );
 
@@ -171,60 +98,122 @@ const Field = ({label, value, onChangeText, placeholder, keyboardType}) => (
   </View>
 );
 
+// ---------------------------------------------------------------------------
+// Animated Background
+// ---------------------------------------------------------------------------
+
+function useAnimatedBackground() {
+  const progress = React.useRef(new Animated.Value(0)).current;
+  const [pair, setPair] = React.useState([0, 1]);
+  const colors = React.useMemo(
+    () => ['#F1F8FF', '#F2ECFF', '#EFFAF2', '#FFF6E7', '#EEF7F7'],
+    [],
+  );
+
+  React.useEffect(() => {
+    let cancelled = false;
+    const loop = () => {
+      progress.setValue(0);
+      Animated.timing(progress, {
+        toValue: 1,
+        duration: 2800,
+        easing: Easing.inOut(Easing.quad),
+        useNativeDriver: false,
+      }).start(({finished}) => {
+        if (!finished || cancelled) return;
+        setPair(([, b]) => [(b + 0) % colors.length ? b : b, (b + 1) % colors.length]);
+      });
+    };
+    loop();
+    const id = setInterval(loop, 2800);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [colors.length, progress]);
+
+  return {
+    backgroundColor: progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [colors[pair[0]], colors[pair[1]]],
+    }),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Screens
+// ---------------------------------------------------------------------------
+
+const HeroCard = ({onPress}) => (
+  <View style={styles.heroCard}>
+    <Text style={styles.heroH1}>Feedback</Text>
+    <Text style={styles.heroH2}>
+      forms <Text style={styles.heroSlash}>\</Text> flows
+    </Text>
+    <Text style={styles.heroH1}>for business</Text>
+    <View style={{marginTop: 18}}>
+      <PrimaryButton title="Getting Started" onPress={onPress} />
+    </View>
+    <Text style={styles.heroCaption}>Interact with flows made by Pisano</Text>
+  </View>
+);
+
+// ---------------------------------------------------------------------------
+// App
+// ---------------------------------------------------------------------------
+
 export default function App() {
   const cfg = React.useMemo(() => loadConfig(), []);
   const bg = useAnimatedBackground();
 
   const [screen, setScreen] = React.useState('splash');
-
   const [name, setName] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [phone, setPhone] = React.useState('');
   const [externalId, setExternalId] = React.useState('');
   const [customTitle, setCustomTitle] = React.useState('');
   const [viewMode, setViewMode] = React.useState('Default');
-  const [titleColor, setTitleColor] = React.useState('#BDBDBD');
-  const [titleFont, setTitleFont] = React.useState('Title');
-
   const [status, setStatus] = React.useState('-');
   const [booted, setBooted] = React.useState(false);
 
   const setStatusLine = (s) => setStatus(String(s ?? '-'));
 
+  // Splash -> Main after 700ms
   React.useEffect(() => {
     const t = setTimeout(() => setScreen('main'), 700);
     return () => clearTimeout(t);
   }, []);
 
+  // Enable debug logging
   React.useEffect(() => {
     feedbackSDKDebugMode(true);
   }, []);
 
+  // Boot the SDK once
   React.useEffect(() => {
     if (booted) return;
     const appId = (cfg.appId ?? '').trim();
     const accessKey = (cfg.accessKey ?? '').trim();
+    const code = (cfg.code ?? '').trim();
     if (!appId || !accessKey || appId === 'YOUR_APP_ID' || accessKey === 'YOUR_ACCESS_KEY') {
-      setStatusLine('Status: missing credentials');
+      setStatusLine('Missing credentials — see pisano.config.js');
       return;
     }
 
     feedbackSDKBoot(
       appId,
       accessKey,
+      code,
       (cfg.apiUrl ?? '').trim(),
       (cfg.feedbackUrl ?? '').trim(),
-      (cfg.eventUrl ?? '').trim() ? (cfg.eventUrl ?? '').trim() : undefined,
-      (s) => {
-        setStatusLine(`Boot: ${s}`);
-      }
+      (cfg.eventUrl ?? '').trim() || undefined,
+      (s) => setStatusLine(`Boot: ${s}`),
     );
     setBooted(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [booted]);
 
   const handleGetFeedback = () => {
-    // Build customer map like UIKit sample fields.
     const customer = new Map();
     if (name.trim()) customer.set('name', name.trim());
     if (email.trim()) customer.set('email', email.trim());
@@ -232,30 +221,26 @@ export default function App() {
     if (externalId.trim()) customer.set('externalId', externalId.trim());
 
     const payload = new Map();
-    payload.set('uiTitleColor', titleColor); // hex
-    payload.set('uiTitleFont', titleFont); // Title | Body
-    payload.set('uiViewMode', viewMode); // Default | BottomSheet
+    payload.set('uiViewMode', viewMode);
 
     const mode =
-      viewMode === 'BottomSheet' ? feedbackSDKViewMode.BottomSheet : feedbackSDKViewMode.Default;
+      viewMode === 'BottomSheet'
+        ? feedbackSDKViewMode.BottomSheet
+        : feedbackSDKViewMode.Default;
 
-    // Title UI -> SDK
-    const title = customTitle.trim() ? customTitle.trim() : null;
-    const titleFontSize = titleFont === 'Title' ? 20 : 16;
-    const flowId = (cfg.flowId ?? '').trim() ? (cfg.flowId ?? '').trim() : null;
-    const language = (cfg.language ?? '').trim() ? (cfg.language ?? '').trim() : 'en';
+    const title = customTitle.trim() || null;
+    const code = (cfg.code ?? '').trim() || null;
+    const language = (cfg.language ?? '').trim() || 'en';
 
     feedbackSDKShow(
       mode,
       title,
-      titleFontSize,
-      flowId,
+      cfg.titleFontSize ?? 16,
+      code,
       language,
       customer,
       payload,
-      (result) => {
-        setStatusLine(`Show: ${result}`);
-      }
+      (result) => setStatusLine(`Show: ${result}`),
     );
   };
 
@@ -267,111 +252,90 @@ export default function App() {
     setExternalId('');
     setCustomTitle('');
     setViewMode('Default');
-    setTitleColor('#BDBDBD');
-    setTitleFont('Title');
     setStatusLine('-');
   };
 
+  // --- Splash ---
+  if (screen === 'splash') {
+    return (
+      <Animated.View style={[styles.bg, {backgroundColor: bg.backgroundColor}]}>
+        <SafeAreaView style={[styles.safe, {justifyContent: 'center'}]}>
+          <Logo />
+        </SafeAreaView>
+      </Animated.View>
+    );
+  }
+
+  // --- Main ---
   if (screen === 'main') {
     return (
       <Animated.View style={[styles.bg, {backgroundColor: bg.backgroundColor}]}>
         <SafeAreaView style={styles.safe}>
           <Logo />
           <View style={styles.centerWrap}>
-            <GettingStartedCard onPress={() => setScreen('detail')} />
+            <HeroCard onPress={() => setScreen('detail')} />
           </View>
         </SafeAreaView>
       </Animated.View>
     );
   }
 
-  if (screen === 'detail') {
-    return (
-      <Animated.View style={[styles.bg, {backgroundColor: bg.backgroundColor}]}>
-        <SafeAreaView style={styles.safe}>
-          <Logo />
-          <KeyboardAvoidingView
-            style={styles.flex}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          >
-            <ScrollView contentContainerStyle={styles.formWrap} keyboardShouldPersistTaps="handled">
-              <View style={styles.formCard}>
-                <Field label="Name" value={name} onChangeText={setName} />
-                <Field
-                  label="Email"
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder="email@address.com"
-          keyboardType="email-address"
-                />
-                <Field
-                  label="Phone"
-                  value={phone}
-                  onChangeText={setPhone}
-                  placeholder="01234567890"
-          keyboardType="phone-pad"
-        />
-                <Field label="External Id" value={externalId} onChangeText={setExternalId} />
-                <Field label="Custom Title" value={customTitle} onChangeText={setCustomTitle} />
-
-                <Text style={styles.fieldLabel}>View Mode</Text>
-                <Segmented
-                  left={{label: 'Default', value: 'Default'}}
-                  right={{label: 'BottomSheet', value: 'BottomSheet'}}
-                  value={viewMode}
-                  onChange={setViewMode}
-                />
-
-                <Text style={styles.fieldLabel}>Custom Title Color</Text>
-                <ColorSwatches
-                  colors={[
-                    '#BDBDBD',
-                    '#007AFF',
-                    '#34C759',
-                    '#FFCC00',
-                    '#8E8E93',
-                    '#D1D1D6',
-                    '#7D7D7D',
-                    '#FF9500',
-                  ]}
-                  value={titleColor}
-                  onChange={setTitleColor}
-                />
-
-                <Text style={styles.fieldLabel}>Title Font</Text>
-                <Segmented
-                  left={{label: 'Title', value: 'Title'}}
-                  right={{label: 'Body', value: 'Body'}}
-                  value={titleFont}
-                  onChange={setTitleFont}
-                />
-
-                <View style={{marginTop: 18}}>
-                  <PrimaryButton title="Get Feedback" onPress={handleGetFeedback} />
-        </View>
-
-                <View style={{marginTop: 18, alignItems: 'center'}}>
-                  <LinkButton title="Clear" onPress={handleClear} />
-                </View>
-
-                <Text style={styles.statusLine}>Status: {status}</Text>
-        </View>
-            </ScrollView>
-          </KeyboardAvoidingView>
-        </SafeAreaView>
-      </Animated.View>
-    );
-  }
-
-  // splash
+  // --- Detail ---
   return (
     <Animated.View style={[styles.bg, {backgroundColor: bg.backgroundColor}]}>
-      <SafeAreaView style={[styles.safe, {justifyContent: 'center'}]}>
+      <SafeAreaView style={styles.safe}>
         <Logo />
+        <KeyboardAvoidingView
+          style={styles.flex}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <ScrollView contentContainerStyle={styles.formWrap} keyboardShouldPersistTaps="handled">
+            <View style={styles.formCard}>
+              <Field label="Name" value={name} onChangeText={setName} />
+              <Field
+                label="Email"
+                value={email}
+                onChangeText={setEmail}
+                placeholder="email@address.com"
+                keyboardType="email-address"
+              />
+              <Field
+                label="Phone"
+                value={phone}
+                onChangeText={setPhone}
+                placeholder="01234567890"
+                keyboardType="phone-pad"
+              />
+              <Field label="External Id" value={externalId} onChangeText={setExternalId} />
+              <Field label="Custom Title" value={customTitle} onChangeText={setCustomTitle} />
+
+              <Text style={styles.fieldLabel}>View Mode</Text>
+              <Segmented
+                left={{label: 'Default', value: 'Default'}}
+                right={{label: 'BottomSheet', value: 'BottomSheet'}}
+                value={viewMode}
+                onChange={setViewMode}
+              />
+
+              <View style={{marginTop: 18}}>
+                <PrimaryButton title="Get Feedback" onPress={handleGetFeedback} />
+              </View>
+
+              <View style={{marginTop: 18, alignItems: 'center'}}>
+                <LinkButton title="Clear" onPress={handleClear} />
+              </View>
+
+              <Text style={styles.statusLine}>Status: {status}</Text>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </Animated.View>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Styles
+// ---------------------------------------------------------------------------
 
 const styles = StyleSheet.create({
   bg: {flex: 1},
@@ -445,18 +409,5 @@ const styles = StyleSheet.create({
   segmentText: {fontSize: 16, fontWeight: '800', color: '#111827'},
   segmentTextActive: {color: '#111827'},
 
-  swatchRow: {flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 12},
-  swatch: {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  swatchSelected: {borderWidth: 2, borderColor: '#A7C8FF'},
-  swatchCheck: {fontSize: 22, fontWeight: '900', color: 'white'},
-
   statusLine: {marginTop: 22, color: '#9CA3AF', fontSize: 16},
 });
-
-
