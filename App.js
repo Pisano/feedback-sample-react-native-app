@@ -52,14 +52,14 @@ const PrimaryButton = ({title, onPress, disabled}) => (
     style={({pressed}) => [
       styles.primaryButton,
       disabled && styles.primaryButtonDisabled,
-      pressed && !disabled && {opacity: 0.9},
+      pressed && !disabled && styles.pressedFeedback,
     ]}>
     <Text style={styles.primaryButtonText}>{title}</Text>
   </Pressable>
 );
 
 const LinkButton = ({title, onPress}) => (
-  <Pressable onPress={onPress} style={({pressed}) => [pressed && {opacity: 0.6}]}>
+  <Pressable onPress={onPress} style={({pressed}) => [pressed && styles.pressedFeedbackLight]}>
     <Text style={styles.linkText}>{title}</Text>
   </Pressable>
 );
@@ -84,7 +84,7 @@ const Segmented = ({left, right, value, onChange}) => (
 );
 
 const Field = ({label, value, onChangeText, placeholder, keyboardType}) => (
-  <View style={{marginTop: 14}}>
+  <View style={styles.fieldWrap}>
     <Text style={styles.fieldLabel}>{label}</Text>
     <TextInput
       value={value}
@@ -151,7 +151,7 @@ const HeroCard = ({onPress}) => (
       forms <Text style={styles.heroSlash}>\</Text> flows
     </Text>
     <Text style={styles.heroH1}>for business</Text>
-    <View style={{marginTop: 18}}>
+    <View style={styles.sectionGap}>
       <PrimaryButton title="Getting Started" onPress={onPress} />
     </View>
     <Text style={styles.heroCaption}>Interact with flows made by Pisano</Text>
@@ -259,7 +259,7 @@ export default function App() {
   if (screen === 'splash') {
     return (
       <Animated.View style={[styles.bg, {backgroundColor: bg.backgroundColor}]}>
-        <SafeAreaView style={[styles.safe, {justifyContent: 'center'}]}>
+        <SafeAreaView style={styles.splashSafe}>
           <Logo />
         </SafeAreaView>
       </Animated.View>
@@ -316,11 +316,11 @@ export default function App() {
                 onChange={setViewMode}
               />
 
-              <View style={{marginTop: 18}}>
+              <View style={styles.sectionGap}>
                 <PrimaryButton title="Get Feedback" onPress={handleGetFeedback} />
               </View>
 
-              <View style={{marginTop: 18, alignItems: 'center'}}>
+              <View style={styles.clearButtonWrap}>
                 <LinkButton title="Clear" onPress={handleClear} />
               </View>
 
@@ -362,6 +362,8 @@ const styles = StyleSheet.create({
   heroSlash: {color: '#111827'},
   heroCaption: {marginTop: 16, color: '#6B7280', fontSize: 14},
 
+  splashSafe: {flex: 1, justifyContent: 'center'},
+
   primaryButton: {
     backgroundColor: '#007AFF',
     paddingVertical: 16,
@@ -370,6 +372,8 @@ const styles = StyleSheet.create({
   },
   primaryButtonDisabled: {opacity: 0.6},
   primaryButtonText: {color: 'white', fontWeight: '800', fontSize: 18},
+  pressedFeedback: {opacity: 0.9},
+  pressedFeedbackLight: {opacity: 0.6},
 
   linkText: {fontSize: 18, fontWeight: '700', color: '#111827'},
 
@@ -384,6 +388,7 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 8},
     elevation: 4,
   },
+  fieldWrap: {marginTop: 14},
   fieldLabel: {fontSize: 18, fontWeight: '800', color: '#111827', marginTop: 16},
   fieldInput: {
     marginTop: 10,
@@ -409,5 +414,7 @@ const styles = StyleSheet.create({
   segmentText: {fontSize: 16, fontWeight: '800', color: '#111827'},
   segmentTextActive: {color: '#111827'},
 
+  sectionGap: {marginTop: 18},
+  clearButtonWrap: {marginTop: 18, alignItems: 'center'},
   statusLine: {marginTop: 22, color: '#9CA3AF', fontSize: 16},
 });
