@@ -6,8 +6,8 @@ prepare_react_native_project!
 # Required by request: build pods as frameworks. For RN 0.70.x, static linkage is typically the most compatible.
 use_frameworks! :linkage => :static
 
-# Force-enable the New Architecture for iOS pods/codegen.
-# This also aligns with feedback-react-native-sdk.podspec which gates new-arch deps on this env var.
+# New Architecture toggle: set to '1' to enable, '0' to disable.
+# feedback-react-native-sdk supports both. Must run `pod install` after changing.
 ENV['RCT_NEW_ARCH_ENABLED'] = '1'
 
 target 'FeedbackSampleReactNativeApp' do
@@ -15,9 +15,6 @@ target 'FeedbackSampleReactNativeApp' do
 
   use_react_native!(
     :path => config[:reactNativePath],
-    # Hermes is now enabled by default. Disable by setting this flag to false.
-    # Upcoming versions of React Native may rely on get_default_flags(), but
-    # we make it explicit here to aid in the React Native upgrade process.
     :hermes_enabled => true,
     :fabric_enabled => true,
     :new_arch_enabled => true,

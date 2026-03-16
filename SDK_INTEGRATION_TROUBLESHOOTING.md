@@ -1,0 +1,110 @@
+# feedback-react-native-sdk — Müşteri Entegrasyon Sorunları
+
+Müşterilerin karşılaştığı hatalar ve kök neden analizi.
+
+---
+
+## Hata 1: `generateCodegenArtifactsFromSchema` task not found (Android)
+
+```
+Cannot locate tasks that match ':feedback-react-native-sdk:generateCodegenArtifactsFromSchema'
+as task 'generateCodegenArtifactsFromSchema' not found in project ':feedback-react-native-sdk'
+```
+
+### Kök neden
+
+SDK’nın `android/build.gradle` dosyasında React plugin sadece `newArchEnabled=true` iken uygulanıyor:
+
+```groovy
+if (isNewArchitectureEnabled()) {
+  apply plugin: 'com.facebook.react'
+  react { ... }
+}
+```
+
+`generateCodegenArtifactsFromSchema` bu plugin tarafından tanımlanıyor. Müşteri app’inde `newArchEnabled=true` olduğunda:
+
+1. Autolinking / RN build sistemi `:feedback-react-native-sdk:generateCodegenArtifactsFromSchema` task’ına bağımlılık ekliyor.
+2. Ancak SDK projesi `rootProject.newArchEnabled`’ı farklı okuyabilir veya yapılandırma sırası nedeniyle bu task hiç oluşturulmuyor.
+3. Gradle, var olmayan bir task’ı çalıştırmaya çalışınca hata alıyor.
+
+### Olası çözümler
+
+**Seçenek A — Müşteri tarafında:** New Architecture kapatılsın:
+
+```properties
+# android/gradle.properties
+newArchEnabled=false
+```
+
+Sonrasında temiz build: `cd android && ./gradlew clean && cd ..` ardından `npx react-native run-android`.
+
+**Seçenek B — SDK tarafında:** React plugin her zaman uygulanabilir, task’ların `onlyIf` ile kontrol edilmesi sağlanabilir (örn. `needsCodegenFromPackageJson`). Böylece task her zaman tanımlı olur, gerekmezse skip edilir.
+
+**Seçenek C:** `rootProject.hasProperty("newArchEnabled")` ve `rootProject.getProperty("newArchEnabled") == "true"` kontrolünün müşteri projesindeki farklı gradle yapılandırmalarıyla uyumlu olduğundan emin olunmalı (örn. environment variable, -P parametresi vb.).
+
+---
+
+## Hata 2: "The package 'feedback-react-native-sdk' doesn't seem to be linked"
+
+```
+Error booting FeedbackSDK: Error: The package 'feedback-react-native-sdk' doesn't seem to be linked.
+Make sure:
+- You have run 'pod install' (iOS)
+- You have rebuilt the Android app
+- You rebuilt the app after installing the package
+```
+
+### Kök neden
+
+Native modül ya hiç link edilmemiş ya da build başarısız olduğu için native kod dahil edilmemiş.
+
+### Android
+
+1. `generateCodegenArtifactsFromSchema` hatası nedeniyle build başarısız olmuş olabilir.
+2. Paket eklendikten sonra tam rebuild yapılmamış olabilir.
+
+Yapılacaklar:
+```bash
+cd android
+./gradlew clean
+cd ..
+npx react-native run-android
+```
+
+### iOS
+
+1. `pod install` çalıştırılmamış olabilir.
+2. `.xcworkspace` yerine `.xcodeproj` ile açılmış olabilir.
+
+Yapılacaklar:
+```bash
+cd ios
+pod install
+cd ..
+npx react-native run-ios
+```
+
+(Xcode kullanıyorsa `FeedbackSampleReactNativeApp.xcworkspace` ile açılmalı.)
+
+---
+
+## Özet: Hata zinciri
+
+```
+Müşteri newArchEnabled=true ile build alıyor
+    → RN build, SDK için codegen task’ına bağımlılık ekliyor
+    → SDK bu task’ı oluşturmuyor (plugin koşullu uygulanıyor)
+    → Gradle: "task not found"
+    → Build başarısız
+    → (Alternatif: müşteri newArch=false deneyip build alırsa)
+    → "doesn't seem to be linked" → muhtemelen tam rebuild yapılmamış
+```
+
+---
+
+## SDK tarafında yapılacaklar (0.2.11 veya patch)
+
+1. **Her zaman React plugin uygulama:** `android/build.gradle` içinde plugin’i koşulsuz uygulayıp, sadece `react { }` bloklarını `isNewArchitectureEnabled()` ile koşullandırmak.
+2. **Codegen task’larını her zaman tanımlama:** Task’ların `onlyIf` ile skip edilebilir olması; böylece Gradle “task not found” hatası vermez.
+3. **Documentation:** `README` / release notes’ta “New Architecture kullanıyorsanız …” ve “Linking sorunu yaşıyorsanız pod install + rebuild yapın” adımlarını eklemek.
