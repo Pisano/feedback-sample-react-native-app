@@ -1,5 +1,28 @@
 # Release Notes — feedback-sample-react-native-app
 
+## v0.2.11 (2025-03-18)
+
+### Breaking Changes
+
+#### `feedbackSDKTrack` removed
+
+`feedbackSDKTrack` has been removed from the SDK. Remove any calls to `feedbackSDKTrack(...)` from your codebase before upgrading.
+
+### Bug Fixes
+
+- **Fixed TurboModule detection on React Native 0.79+** — The SDK now correctly detects New Architecture by checking `global.RN$Bridgeless`, fixing crashes on RN 0.79+ with `newArchEnabled=true`.
+- Both New Architecture and Legacy Bridge modes now work correctly on Android and iOS.
+
+### Migration Checklist
+
+1. Update SDK dependency: `"feedback-react-native-sdk": "^0.2.11"`
+2. Remove any `feedbackSDKTrack(...)` calls from your code
+3. Run `npm install` or `yarn install`
+4. On iOS: `cd ios && pod install`
+5. Clean build: Android `cd android && ./gradlew clean`, iOS clean build folder in Xcode
+
+---
+
 ## v0.2.9 (2025-01-29)
 
 ### Breaking Changes

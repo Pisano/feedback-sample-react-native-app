@@ -98,14 +98,6 @@ feedbackSDKShow(
 | `payload`       | `Map<string, string>`   | No       | Payload data                         |
 | `callback`      | `fn`                    | Yes      | Returns `feedbackSDKCallback` value  |
 
-### Track
-
-```js
-import { feedbackSDKTrack } from 'feedback-react-native-sdk';
-
-feedbackSDKTrack('purchase_completed', payload, customer, 'en', (s) => console.log(s));
-```
-
 ### Clear
 
 ```js

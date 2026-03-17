@@ -13,7 +13,7 @@ as task 'generateCodegenArtifactsFromSchema' not found in project ':feedback-rea
 
 ### Kök neden
 
-SDK’nın `android/build.gradle` dosyasında React plugin sadece `newArchEnabled=true` iken uygulanıyor:
+SDK'nın `android/build.gradle` dosyasında React plugin sadece `newArchEnabled=true` iken uygulanıyor:
 
 ```groovy
 if (isNewArchitectureEnabled()) {
@@ -22,11 +22,11 @@ if (isNewArchitectureEnabled()) {
 }
 ```
 
-`generateCodegenArtifactsFromSchema` bu plugin tarafından tanımlanıyor. Müşteri app’inde `newArchEnabled=true` olduğunda:
+`generateCodegenArtifactsFromSchema` bu plugin tarafından tanımlanıyor. Müşteri app'inde `newArchEnabled=true` olduğunda:
 
-1. Autolinking / RN build sistemi `:feedback-react-native-sdk:generateCodegenArtifactsFromSchema` task’ına bağımlılık ekliyor.
-2. Ancak SDK projesi `rootProject.newArchEnabled`’ı farklı okuyabilir veya yapılandırma sırası nedeniyle bu task hiç oluşturulmuyor.
-3. Gradle, var olmayan bir task’ı çalıştırmaya çalışınca hata alıyor.
+1. Autolinking / RN build sistemi `:feedback-react-native-sdk:generateCodegenArtifactsFromSchema` task'ına bağımlılık ekliyor.
+2. Ancak SDK projesi `rootProject.newArchEnabled`'ı farklı okuyabilir veya yapılandırma sırası nedeniyle bu task hiç oluşturulmuyor.
+3. Gradle, var olmayan bir task'ı çalıştırmaya çalışınca hata alıyor.
 
 ### Olası çözümler
 
@@ -39,7 +39,7 @@ newArchEnabled=false
 
 Sonrasında temiz build: `cd android && ./gradlew clean && cd ..` ardından `npx react-native run-android`.
 
-**Seçenek B — SDK tarafında:** React plugin her zaman uygulanabilir, task’ların `onlyIf` ile kontrol edilmesi sağlanabilir (örn. `needsCodegenFromPackageJson`). Böylece task her zaman tanımlı olur, gerekmezse skip edilir.
+**Seçenek B — SDK tarafında:** React plugin her zaman uygulanabilir, task'ların `onlyIf` ile kontrol edilmesi sağlanabilir (örn. `needsCodegenFromPackageJson`). Böylece task her zaman tanımlı olur, gerekmezse skip edilir.
 
 **Seçenek C:** `rootProject.hasProperty("newArchEnabled")` ve `rootProject.getProperty("newArchEnabled") == "true"` kontrolünün müşteri projesindeki farklı gradle yapılandırmalarıyla uyumlu olduğundan emin olunmalı (örn. environment variable, -P parametresi vb.).
 
@@ -93,8 +93,8 @@ npx react-native run-ios
 
 ```
 Müşteri newArchEnabled=true ile build alıyor
-    → RN build, SDK için codegen task’ına bağımlılık ekliyor
-    → SDK bu task’ı oluşturmuyor (plugin koşullu uygulanıyor)
+    → RN build, SDK için codegen task'ına bağımlılık ekliyor
+    → SDK bu task'ı oluşturmuyor (plugin koşullu uygulanıyor)
     → Gradle: "task not found"
     → Build başarısız
     → (Alternatif: müşteri newArch=false deneyip build alırsa)
@@ -103,8 +103,16 @@ Müşteri newArchEnabled=true ile build alıyor
 
 ---
 
-## SDK tarafında yapılacaklar (0.2.11 veya patch)
+## Çözüm: SDK v0.2.11
 
-1. **Her zaman React plugin uygulama:** `android/build.gradle` içinde plugin’i koşulsuz uygulayıp, sadece `react { }` bloklarını `isNewArchitectureEnabled()` ile koşullandırmak.
-2. **Codegen task’larını her zaman tanımlama:** Task’ların `onlyIf` ile skip edilebilir olması; böylece Gradle “task not found” hatası vermez.
-3. **Documentation:** `README` / release notes’ta “New Architecture kullanıyorsanız …” ve “Linking sorunu yaşıyorsanız pod install + rebuild yapın” adımlarını eklemek.
+Bu sorunlar **v0.2.11** ile çözülmüştür:
+
+- React Native 0.79+ için TurboModule algılama mekanizması düzeltildi
+- New Architecture (newArchEnabled=true) ve Legacy Bridge (newArchEnabled=false) modlarında tam uyumluluk sağlandı
+- Android ve iOS platformlarında doğrulandı
+
+Güncelleme:
+
+```bash
+npm install feedback-react-native-sdk@0.2.11
+```
