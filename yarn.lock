@@ -3385,10 +3385,10 @@ fb-watchman@^2.0.0:
   dependencies:
     bser "2.1.1"
 
-feedback-react-native-sdk@^0.2.10:
-  version "0.2.10"
-  resolved "https://registry.npmjs.org/feedback-react-native-sdk/-/feedback-react-native-sdk-0.2.10.tgz"
-  integrity sha512-3MCe9Im2HOTK4faKncratL9kkY1nspHMmbQ+E6ajHeSFGTyjh1JnJxb2hMezvst2awnSaT+oElUPdBcLFwPXuQ==
+feedback-react-native-sdk@^0.2.12:
+  version "0.2.12"
+  resolved "https://registry.npmjs.org/feedback-react-native-sdk/-/feedback-react-native-sdk-0.2.12.tgz"
+  integrity sha512-P9G02WLHtYxVP4oPxWmYNnOtXnZVEJNppGA8IwQ+5egEjz78XAvoF6Eyuy5+zjEH4w2LKIuQ+JlLom+CMmNoOw==
 
 file-entry-cache@^6.0.1:
   version "6.0.1"
