@@ -40,6 +40,19 @@ npx react-native run-android
 
 ## SDK Usage
 
+### Debug mode
+
+Enables verbose native logging. Call **before** boot.
+
+```js
+import { feedbackSDKDebugMode } from 'feedback-react-native-sdk';
+
+feedbackSDKDebugMode(true);
+
+// Android: adb logcat -s PISANO_SDK ReactNativeJS
+// iOS: Xcode console → filter "Pisano"
+```
+
 ### Boot
 
 Call once at app start to initialize the SDK:
@@ -48,12 +61,12 @@ Call once at app start to initialize the SDK:
 import { feedbackSDKBoot } from 'feedback-react-native-sdk';
 
 feedbackSDKBoot(
-  appId,       // Application ID
-  accessKey,   // Access key
-  code,        // Channel code (e.g. "PSN-xxxxx")
-  apiUrl,      // API base URL
-  feedbackUrl, // Feedback widget URL
-  eventUrl,    // Event URL (optional)
+  'YOUR_APP_ID',
+  'YOUR_ACCESS_KEY',
+  'PSN-xxxxx',                              // code (required)
+  'https://api.pisano.co',
+  'https://web.pisano.co/web_feedback',
+  undefined,                                 // eventUrl (optional)
   (status) => console.log('Boot:', status)
 );
 ```
@@ -76,13 +89,20 @@ Display the feedback widget:
 import { feedbackSDKShow, feedbackSDKViewMode } from 'feedback-react-native-sdk';
 
 feedbackSDKShow(
-  feedbackSDKViewMode.Default, // or .BottomSheet
-  'Title',                     // title (string | null)
-  16,                          // titleFontSize (number | null)
-  null,                        // code override (string | null)
-  'en',                        // language (string | null)
-  new Map([['email', 'user@example.com']]), // customer
-  new Map([['source', 'app']]),             // payload
+  feedbackSDKViewMode.BottomSheet,
+  'We Value Your Feedback',                  // title
+  16,                                        // titleFontSize
+  null,                                      // code override (null = use boot code)
+  'en',                                      // language
+  new Map([                                  // customer
+    ['email', 'user@example.com'],
+    ['phoneNumber', '+905551112233'],
+    ['customerId', 'USR-42'],
+  ]),
+  new Map([                                  // payload
+    ['screenName', 'Checkout'],
+    ['orderId', 'ORD-987'],
+  ]),
   (result) => console.log('Show:', result)
 );
 ```
@@ -94,17 +114,13 @@ feedbackSDKShow(
 | `titleFontSize` | `number \| null`        | No       | Title font size                      |
 | `code`          | `string \| null`        | No       | Override the boot code for this call |
 | `language`      | `string \| null`        | No       | Language code (`en`, `tr`, ...)      |
-| `customer`      | `Map<string, any>`      | No       | Customer properties (camelCase keys) |
-| `payload`       | `Map<string, string>`   | No       | Payload data                         |
+| `customer`      | `Map<string, any>`      | No       | Customer info (camelCase keys)       |
+| `payload`       | `Map<string, string>`   | No       | Custom data (camelCase keys)         |
 | `callback`      | `fn`                    | Yes      | Returns `feedbackSDKCallback` value  |
 
-### Track
+**Customer keys:** `customerId`, `email`, `phoneNumber`, `firstName`, `lastName`, `externalId`
 
-```js
-import { feedbackSDKTrack } from 'feedback-react-native-sdk';
-
-feedbackSDKTrack('purchase_completed', payload, customer, 'en', (s) => console.log(s));
-```
+**Payload keys:** any camelCase key-value pairs relevant to your context (e.g. `screenName`, `orderId`, `productCategory`)
 
 ### Clear
 
@@ -114,11 +130,7 @@ import { feedbackSDKClear } from 'feedback-react-native-sdk';
 feedbackSDKClear();
 ```
 
-## Enums
-
-**`feedbackSDKViewMode`**: `Default` | `BottomSheet`
-
-**`feedbackSDKCallback`**:
+## Callback values
 
 | Value                      | Description                    |
 | -------------------------- | ------------------------------ |
@@ -132,6 +144,15 @@ feedbackSDKClear();
 | `DisplayRateLimited`       | Display rate limited           |
 | `SurveyPassive`            | Channel is passive             |
 | `HealthCheckFailed`        | SDK initialization failed      |
+
+## New Architecture support
+
+The SDK works with both architectures out of the box:
+
+- `newArchEnabled=true` → TurboModule
+- `newArchEnabled=false` → Legacy bridge
+
+No extra configuration needed. The SDK reads the standard `newArchEnabled` flag from `gradle.properties`.
 
 ## Troubleshooting
 
