@@ -103,7 +103,7 @@ Müşteri newArchEnabled=true ile build alıyor
 
 ---
 
-## Çözüm: SDK v0.2.12
+## Çözüm: SDK v0.2.13
 
 Bu sorunlar **v0.2.11** ile çözülmüştür:
 
@@ -111,13 +111,15 @@ Bu sorunlar **v0.2.11** ile çözülmüştür:
 - New Architecture (newArchEnabled=true) ve Legacy Bridge (newArchEnabled=false) modlarında tam uyumluluk sağlandı
 - Android ve iOS platformlarında doğrulandı
 
-Ek olarak **v0.2.12** ile:
+Ek olarak **v0.2.12** ve **v0.2.13** ile:
 
 - Android BottomSheet modunda scroll çakışması giderildi
 - Android BottomSheet modunda beyaz ekran sorunu düzeltildi
+- Android BottomSheet arkasındaki beyaz arka plan düzeltildi
+- Android BottomSheet içinde keyboard açılmama sorunu düzeltildi
 
 Güncelleme:
 
 ```bash
-npm install feedback-react-native-sdk@0.2.12
+npm install feedback-react-native-sdk@0.2.13
 ```

@@ -1,19 +1,19 @@
 # Release Notes — feedback-sample-react-native-app
 
-## v0.2.12 (2025-03-18)
+## v0.2.13 (2025-04-03)
 
 ### Bug Fixes
 
-- **Fixed BottomSheet scroll conflict on Android** — Users can now scroll back up to previous survey questions in BottomSheet mode.
-- **Fixed white screen in BottomSheet mode on Android** — Resolved a lifecycle issue where the BottomSheet could render a blank screen on certain devices.
+- **Fixed white background behind BottomSheet on Android** — The area behind the BottomSheet dialog no longer shows a white background.
+- **Fixed keyboard not opening in BottomSheet WebView on Android** — Text input fields inside the survey now correctly trigger the soft keyboard.
 
 ### Internal
 
-- Android native SDK updated from 1.3.28 to 1.3.29.
+- Android native SDK updated to 1.3.30.
 
 ### Migration
 
-1. Update SDK dependency: `"feedback-react-native-sdk": "^0.2.12"`
+1. Update SDK dependency: `"feedback-react-native-sdk": "^0.2.13"`
 2. Run `npm install` or `yarn install`
 3. On iOS: `cd ios && pod install`
 4. Clean build: Android `cd android && ./gradlew clean`, iOS clean build folder in Xcode
