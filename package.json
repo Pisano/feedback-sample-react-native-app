@@ -10,7 +10,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "feedback-react-native-sdk": "^0.2.13",
+    "feedback-react-native-sdk": "^0.2.14",
     "react": "19.0.0",
     "react-native": "0.79.6"
   },

@@ -95,9 +95,10 @@ feedbackSDKShow(
   null,                                      // code override (null = use boot code)
   'en',                                      // language
   new Map([                                  // customer
+    ['name', 'John Doe'],
     ['email', 'user@example.com'],
     ['phoneNumber', '+905551112233'],
-    ['customerId', 'USR-42'],
+    ['externalId', 'USR-42'],
   ]),
   new Map([                                  // payload
     ['screenName', 'Checkout'],
@@ -118,9 +119,9 @@ feedbackSDKShow(
 | `payload`       | `Map<string, string>`   | No       | Custom data (camelCase keys)         |
 | `callback`      | `fn`                    | Yes      | Returns `feedbackSDKCallback` value  |
 
-**Customer keys:** `customerId`, `email`, `phoneNumber`, `firstName`, `lastName`, `externalId`
+**Customer keys:** `name`, `email`, `phoneNumber`, `externalId`, `customAttributes` (both camelCase and snake_case are accepted, but camelCase is recommended)
 
-**Payload keys:** any camelCase key-value pairs relevant to your context (e.g. `screenName`, `orderId`, `productCategory`)
+**Payload keys:** any key-value pairs relevant to your context (e.g. `screenName`, `orderId`, `productCategory`)
 
 ### Clear
 
