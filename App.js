@@ -173,6 +173,7 @@ export default function App() {
   const [externalId, setExternalId] = React.useState('');
   const [customTitle, setCustomTitle] = React.useState('');
   const [viewMode, setViewMode] = React.useState('Default');
+  const [dismissOnDrag, setDismissOnDrag] = React.useState(false);
   const [status, setStatus] = React.useState('-');
   const [booted, setBooted] = React.useState(false);
 
@@ -240,7 +241,8 @@ export default function App() {
       language,
       customer,
       payload,
-      (result) => setStatusLine(`Show: ${result}`),
+      (result) => setStatusLine(`Show (dismissOnDrag=${dismissOnDrag}): ${result}`),
+      dismissOnDrag,
     );
   };
 
@@ -252,6 +254,7 @@ export default function App() {
     setExternalId('');
     setCustomTitle('');
     setViewMode('Default');
+    setDismissOnDrag(false);
     setStatusLine('-');
   };
 
@@ -314,6 +317,14 @@ export default function App() {
                 right={{label: 'BottomSheet', value: 'BottomSheet'}}
                 value={viewMode}
                 onChange={setViewMode}
+              />
+
+              <Text style={styles.fieldLabel}>Dismiss on drag (bottom sheet)</Text>
+              <Segmented
+                left={{label: 'Off', value: false}}
+                right={{label: 'On', value: true}}
+                value={dismissOnDrag}
+                onChange={setDismissOnDrag}
               />
 
               <View style={styles.sectionGap}>

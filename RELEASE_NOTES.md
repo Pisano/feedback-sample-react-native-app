@@ -1,5 +1,44 @@
 # Release Notes — feedback-sample-react-native-app
 
+## v0.2.15 (MT-41 — bottom sheet)
+
+### Features
+
+- **`dismissOnDrag` on `feedbackSDKShow`** — Optional last argument (default `false`). Set to `true` to allow swipe-down dismiss on bottom sheet (Android and iOS).
+- Sample app: **Dismiss on drag (Off/On)** segment on the form screen.
+
+### Native SDK pins (RN 0.2.15)
+
+| Platform | Native SDK |
+|----------|------------|
+| Android | `co.pisano:feedback` **1.3.31** |
+| iOS | `Pisano` pod **1.0.18** |
+
+### Migration
+
+1. Update dependency: `"feedback-react-native-sdk": "^0.2.15"`
+2. Run `npm install` (or `yarn`)
+3. iOS: `cd ios && pod install`
+4. Optional — enable drag dismiss:
+
+```js
+feedbackSDKShow(
+  feedbackSDKViewMode.BottomSheet,
+  title,
+  titleFontSize,
+  code,
+  language,
+  customer,
+  payload,
+  (result) => console.log(result),
+  true, // dismissOnDrag
+);
+```
+
+No breaking changes. Existing calls work unchanged.
+
+---
+
 ## v0.2.13 (2025-04-03)
 
 ### Bug Fixes
