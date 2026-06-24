@@ -3,8 +3,8 @@ PODS:
   - DoubleConversion (1.1.6)
   - fast_float (6.1.4)
   - FBLazyVector (0.79.6)
-  - feedback-react-native-sdk (0.2.10):
-    - Pisano (= 1.0.17)
+  - feedback-react-native-sdk (0.2.15):
+    - Pisano (= 1.0.20)
     - RCT-Folly
     - RCTRequired
     - RCTTypeSafety
@@ -16,7 +16,7 @@ PODS:
   - hermes-engine (0.79.6):
     - hermes-engine/Pre-built (= 0.79.6)
   - hermes-engine/Pre-built (0.79.6)
-  - Pisano (1.0.17)
+  - Pisano (1.0.20)
   - RCT-Folly (2024.11.18.00):
     - boost
     - DoubleConversion
@@ -1898,11 +1898,11 @@ SPEC CHECKSUMS:
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
   FBLazyVector: 07309209b7b914451b8f822544a18e2a0a85afff
-  feedback-react-native-sdk: 9cee3b039e234bc20f62529afdfee633653d1501
+  feedback-react-native-sdk: 65c5e7ccca947404caf2d9d7d6a0638c9f068cb6
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
   glog: 5683914934d5b6e4240e497e0f4a3b42d1854183
   hermes-engine: 44bb6fe76a6eb400d3a992e2d0b21946ae999fa9
-  Pisano: d8867f662b14349ed5d79b85054c19a6aeb9c723
+  Pisano: a66cb32faeaa5196af5f20809ae694158dc75f34
   RCT-Folly: 36fe2295e44b10d831836cc0d1daec5f8abcf809
   RCTDeprecation: 9bc64754b40b86fa5e32f293ab3ea8eea2248339
   RCTRequired: ee36c1ce9a5e65a3f629c13f38a85308eb8eebda

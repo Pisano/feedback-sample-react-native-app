@@ -2,6 +2,8 @@
 
 A sample React Native application demonstrating how to integrate **[feedback-react-native-sdk](https://www.npmjs.com/package/feedback-react-native-sdk)** on iOS and Android.
 
+**SDK version in this sample:** `feedback-react-native-sdk` **^0.2.15** (Android native **1.3.31**, iOS Pisano **1.0.20**)
+
 ## Requirements
 
 - Node 18+
@@ -104,7 +106,8 @@ feedbackSDKShow(
     ['screenName', 'Checkout'],
     ['orderId', 'ORD-987'],
   ]),
-  (result) => console.log('Show:', result)
+  (result) => console.log('Show:', result),
+  false, // dismissOnDrag (optional, default false)
 );
 ```
 
@@ -118,6 +121,9 @@ feedbackSDKShow(
 | `customer`      | `Map<string, any>`      | No       | Customer info (camelCase keys)       |
 | `payload`       | `Map<string, string>`   | No       | Custom data (camelCase keys)         |
 | `callback`      | `fn`                    | Yes      | Returns `feedbackSDKCallback` value  |
+| `dismissOnDrag` | `boolean`               | No       | Default `false`. When `true` with `BottomSheet`, swipe-down dismiss |
+
+The sample form includes **Dismiss on drag (Off/On)** — see `App.js`. See [RELEASE_NOTES.md](./RELEASE_NOTES.md#v0215-mt-41--bottom-sheet) for MT-41 details.
 
 **Customer keys:** `name`, `email`, `phoneNumber`, `externalId`, `customAttributes` (both camelCase and snake_case are accepted, but camelCase is recommended)
 
