@@ -2,7 +2,7 @@
 
 A sample React Native application demonstrating how to integrate **[feedback-react-native-sdk](https://www.npmjs.com/package/feedback-react-native-sdk)** on iOS and Android.
 
-**SDK version in this sample:** `feedback-react-native-sdk` **^0.2.15** (Android native **1.3.31**, iOS Pisano **1.0.20**)
+**SDK version in this sample:** `feedback-react-native-sdk` **^0.2.16** (Android native **1.3.33**, iOS Pisano **1.0.21**)
 
 ## Requirements
 
