@@ -1,5 +1,57 @@
 # Release Notes — feedback-sample-react-native-app
 
+## v0.3.0 (breaking)
+
+### Overview
+
+Aligned with **feedback-react-native-sdk ^0.3.0**, a breaking release. The
+sample app's native projects were regenerated on the current React Native
+template.
+
+### Breaking changes (from the SDK)
+
+- **New Architecture only.** The legacy-bridge code paths are gone. React
+  Native ≤ 0.81 is unsupported — stay on `feedback-react-native-sdk@0.2.x`.
+- **`peerDependencies`**: `react-native >= 0.82.0`, `react >= 19.1.0` (0.82 is
+  the New Architecture-only floor).
+- **`feedbackSDKBoot` / `feedbackSDKShow` take an options object and return a
+  promise.** `await feedbackSDKBoot({ appId, accessKey, code, apiUrl, feedbackUrl })`,
+  `await feedbackSDKShow({ viewMode, customer, payload })`. The positional
+  signatures still work (now `@deprecated`).
+- **`feedbackSDKCallback` is a string enum.** `status === feedbackSDKCallback.Closed`
+  works; code relying on the old numeric value does not. Boot now returns
+  `"InitSuccess"` / `"InitFailed"`; new value `"RedirectToStore"` (Android only).
+  `"Opened"` is no longer delivered.
+
+### New SDK functions (both native SDKs already had them)
+
+- **`feedbackSDKHealthCheck(options?)` → `Promise<boolean>`** — would `show()`
+  open a survey right now, without showing anything.
+- **`feedbackSDKTrack(options)` → `void`** — send a custom event to the trigger
+  engine (was removed in the SDK's 0.2.11, now restored). Fire-and-forget.
+
+### Sample app changes
+
+- React Native **0.79 → 0.87**: native projects regenerated (Swift
+  `AppDelegate`, Gradle 9.4, Android SDK 37 / Kotlin 2.2), Java → Kotlin.
+- **Node 22.13+** required.
+- Legacy scaffolding removed (`_BUCK`, `jni/` C++, `.buckconfig`, `.flowconfig`).
+- Dev dependencies modernized (`@react-native/*` 0.87, ESLint 8, Jest dropped).
+- `App.js` → `src/App.tsx`; credentials read from git-ignored
+  `src/pisano.config.ts` (created from the example on `yarn install`).
+- Actions screen: added **Health check** and **Track event** buttons.
+
+### Migration
+
+1. `"feedback-react-native-sdk": "^0.3.0"`, React Native ≥ 0.82, Node per your RN version.
+2. Switch `feedbackSDKBoot` / `feedbackSDKShow` calls to the options form.
+3. Replace numeric callback comparisons with `feedbackSDKCallback.*`.
+4. `yarn install`, `cd ios && pod install`, clean builds.
+5. Android: no manifest change needed unless your app deliberately sets
+   `android:allowBackup="true"` (then add your own `tools:replace`).
+
+---
+
 ## v0.2.16
 
 ### Overview
