@@ -51,4 +51,4 @@ yarn-error.log
 .cursor/
 
 # Pisano config (contains credentials)
-pisano.config.js
+src/pisano.config.ts

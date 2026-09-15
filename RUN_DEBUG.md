@@ -6,11 +6,14 @@ Step-by-step guide to build and run the sample app on a physical device or emula
 
 | Tool | Minimum | Check |
 |------|---------|-------|
-| Node | 18+ | `node -v` |
+| Node | **22.13+** | `node -v` |
 | JDK | 17 | `java -version` |
-| Android SDK | API 34 | Android Studio > SDK Manager |
-| Xcode | 15+ | `xcode-select -v` |
-| CocoaPods | 1.14+ | `pod --version` |
+| Android SDK | API 37, build-tools 37 | Android Studio > SDK Manager |
+| Xcode | 16+ | `xcodebuild -version` |
+| CocoaPods | 1.16+ | `pod --version` |
+
+This app is on React Native 0.87 (`feedback-react-native-sdk` supports ≥ 0.82),
+**New Architecture only**.
 
 ## One-time Environment Setup
 
@@ -41,7 +44,7 @@ emulator -list-avds # should list emulators (if any)
 ## Install Dependencies
 
 ```bash
-npm install
+yarn install
 
 # iOS only
 cd ios && pod install && cd ..
@@ -88,7 +91,8 @@ npx react-native run-android
 | `spawnSync adb ENOENT` | `ANDROID_HOME` not set. See "One-time Setup" above. |
 | `Unable to load script` | Run `adb reverse tcp:8081 tcp:8081` and make sure Metro is running. |
 | `Could not determine SDK directory` | Set `ANDROID_HOME` or create `android/local.properties` with `sdk.dir=/Users/<you>/Library/Android/sdk` |
-| `String cannot be cast to Double` (crash) | Check `android/gradle.properties` — `FeedbackReactNativeSdk_newArchEnabled` must match `newArchEnabled` (both `false`). |
+| `Manifest merger failed ... allowBackup` | Only if your app deliberately sets `android:allowBackup="true"` — the SDK's bridge manifest neutralises the Pisano AAR's value, so a normal app needs nothing. |
+| `Minimum supported Gradle version is 9.x` | Update `android/gradle/wrapper/gradle-wrapper.properties` to the version React Native 0.87 ships (9.4.1). |
 | Build succeeds but app doesn't open | Run manually: `adb shell am start -n com.feedbacksamplereactnativeapp/.MainActivity` |
 | `No connected devices` | Enable USB Debugging on phone: Settings > Developer Options > USB Debugging. |
 
@@ -132,31 +136,11 @@ npx react-native run-ios
 | Build fails after SDK update | Clean: Xcode > Product > Clean Build Folder (Cmd+Shift+K), then rebuild. |
 | Signing errors | Open Xcode, go to Signing & Capabilities, select your team. |
 
-### iOS: Old vs New Architecture
+### New Architecture
 
-feedback-react-native-sdk supports **both** Old and New Architecture. If a customer cannot integrate, try the other mode.
-
-**Current sample default:** New Architecture (`RCT_NEW_ARCH_ENABLED=1`)
-
-**To test Old Architecture:**
-
-1. Edit `ios/Podfile`:
-   - `ENV['RCT_NEW_ARCH_ENABLED'] = '0'`
-   - `:fabric_enabled => false`
-   - `:new_arch_enabled => false`
-2. Run `cd ios && LANG=en_US.UTF-8 pod install && cd ..`
-3. Build: `npx react-native run-ios` or open in Xcode
-
-**To test New Architecture:**
-
-1. Edit `ios/Podfile`:
-   - `ENV['RCT_NEW_ARCH_ENABLED'] = '1'`
-   - `:fabric_enabled => true`
-   - `:new_arch_enabled => true`
-2. Run `cd ios && LANG=en_US.UTF-8 pod install && cd ..`
-3. Build: `npx react-native run-ios`
-
-**Verification:** `pod install` output shows "Legacy Architecture" vs "New Architecture".
+`feedback-react-native-sdk@0.3.x` is **New Architecture only** — there is no
+Old Architecture mode to toggle. React Native 0.82+ (the SDK's floor) has no
+Old Architecture at all, so on any supported version it is the only option.
 
 ## Debugging Tips
 

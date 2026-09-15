@@ -1,0 +1,81 @@
+name: CI
+
+# This is the customer-facing integration example: it installs
+# feedback-react-native-sdk from npm and builds a real app. Until
+# feedback-react-native-sdk@0.3.0 is published, `yarn install` fails here —
+# that is the expected signal (the SDK is not yet integrable from npm).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: yarn
+      - run: yarn install
+      - run: yarn lint
+
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: yarn
+      - run: yarn install
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK packages
+        run: sdkmanager "platforms;android-37" "build-tools;37.0.0" "ndk;27.1.12297006"
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('android/**/*.gradle*', 'android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: ${{ runner.os }}-gradle-
+      - name: assembleDebug
+        working-directory: android
+        run: ./gradlew :app:assembleDebug --console=plain
+
+  ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: yarn
+      - run: yarn install
+      - name: Cache Pods
+        uses: actions/cache@v4
+        with:
+          path: ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: ${{ runner.os }}-pods-
+      - name: pod install
+        working-directory: ios
+        run: pod install
+      - name: xcodebuild
+        working-directory: ios
+        run: |
+          xcodebuild -workspace FeedbackSampleReactNativeApp.xcworkspace \
+            -scheme FeedbackSampleReactNativeApp \
+            -sdk iphonesimulator -configuration Debug \
+            build CODE_SIGNING_ALLOWED=NO

@@ -1,65 +1,34 @@
-require_relative '../node_modules/react-native/scripts/react_native_pods'
+# Resolve react_native_pods.rb with node to allow for hoisting
+require Pod::Executable.execute_command('node', ['-p',
+  'require.resolve(
+    "react-native/scripts/react_native_pods.rb",
+    {paths: [process.argv[1]]},
+  )', __dir__]).strip
 
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
 
-# Required by request: build pods as frameworks. For RN 0.70.x, static linkage is typically the most compatible.
-use_frameworks! :linkage => :static
-
-# New Architecture toggle: set to '1' to enable, '0' to disable.
-# feedback-react-native-sdk supports both. Must run `pod install` after changing.
-ENV['RCT_NEW_ARCH_ENABLED'] = '1'
+linkage = ENV['USE_FRAMEWORKS']
+if linkage != nil
+  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
+  use_frameworks! :linkage => linkage.to_sym
+end
 
 target 'FeedbackSampleReactNativeApp' do
-  # Until Pisano 1.0.21 is on CocoaPods trunk, resolve from Git tag
-  pod 'Pisano', :git => 'https://github.com/Pisano/pisano-ios.git', :tag => '1.0.21'
-
   config = use_native_modules!
 
   use_react_native!(
     :path => config[:reactNativePath],
-    :hermes_enabled => true,
-    :fabric_enabled => true,
-    :new_arch_enabled => true,
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
-  target 'FeedbackSampleReactNativeAppTests' do
-    inherit! :complete
-    # Pods for testing
-  end
-
   post_install do |installer|
     react_native_post_install(
       installer,
-      # Set `mac_catalyst_enabled` to `true` in order to apply patches
-      # necessary for Mac Catalyst builds
-      :mac_catalyst_enabled => false
+      config[:reactNativePath],
+      :mac_catalyst_enabled => false,
+      # :ccache_enabled => true
     )
-
-    installer.pods_project.targets.each do |target|
-      next unless target.name == 'RCT-Folly'
-
-      target.build_configurations.each do |config|
-        definitions = config.build_settings['GCC_PREPROCESSOR_DEFINITIONS']
-        definitions = definitions ? Array(definitions) : ['$(inherited)']
-
-        unless definitions.include?('FOLLY_HAVE_CLOCK_GETTIME=1')
-          definitions << 'FOLLY_HAVE_CLOCK_GETTIME=1'
-        end
-
-        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = definitions
-
-        cpp_flags = config.build_settings['OTHER_CPLUSPLUSFLAGS']
-        cpp_flags = cpp_flags ? Array(cpp_flags) : ['$(inherited)']
-
-        unless cpp_flags.include?('-D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION')
-          cpp_flags << '-D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION'
-        end
-
-        config.build_settings['OTHER_CPLUSPLUSFLAGS'] = cpp_flags
-      end
-    end
   end
 end
