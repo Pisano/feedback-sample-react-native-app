@@ -7,7 +7,7 @@ A standalone React Native app showing how to integrate
 on iOS and Android. It installs the SDK from npm like a real integration — it is
 not linked to the SDK source.
 
-**SDK version:** `feedback-react-native-sdk` **^0.4.0** (native Pisano 2.0)
+**SDK version:** `feedback-react-native-sdk` **^1.0.0** (native Pisano 2.0)
 (Android native `co.pisano:feedback:1.3.+`, iOS `Pisano ~> 1.0.21`).
 
 The full API reference lives in the

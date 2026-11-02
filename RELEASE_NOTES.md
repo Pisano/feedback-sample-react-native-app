@@ -1,11 +1,11 @@
 # Release Notes — feedback-sample-react-native-app
 
-## v0.4.0 (breaking, unreleased)
+## v1.0.0 (breaking, unreleased)
 
-Aligned with **feedback-react-native-sdk ^0.4.0** (native Pisano 2.0).
+Aligned with **feedback-react-native-sdk ^1.0.0** (native Pisano 2.0).
 
 - `feedbackSDKBoot` resolves a `boolean`; the sample's boot state follows it
-  (with 0.4.0 the old `"InitSuccess"` check would never pass).
+  (with 1.0.0 the old `"InitSuccess"` check would never pass).
 - `feedbackSDKTrack` resolves a `boolean`; the log shows whether the event was sent.
 - Survey events from `feedbackSDKOn` are written to the log.
 - New **Request timeout** field (default 30 s), applied with
