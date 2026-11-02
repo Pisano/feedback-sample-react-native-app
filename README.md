@@ -7,7 +7,7 @@ A standalone React Native app showing how to integrate
 on iOS and Android. It installs the SDK from npm like a real integration — it is
 not linked to the SDK source.
 
-**SDK version:** `feedback-react-native-sdk` **^0.3.0**
+**SDK version:** `feedback-react-native-sdk` **^0.4.0** (native Pisano 2.0)
 (Android native `co.pisano:feedback:1.3.+`, iOS `Pisano ~> 1.0.21`).
 
 The full API reference lives in the
@@ -24,7 +24,7 @@ file covers running the sample and the essentials.
 | Xcode | 16+, CocoaPods 1.16+ |
 | Android SDK | API 37, build-tools 37 |
 
-`feedback-react-native-sdk@0.3.x` is **New Architecture only**. React Native
+`feedback-react-native-sdk@0.3.x` and later are **New Architecture only**. React Native
 ≤ 0.81 must stay on `feedback-react-native-sdk@0.2.x`.
 
 ## Setup
@@ -73,9 +73,9 @@ feedbackSDKDebugMode(true);
 ### Boot — once, on app start
 
 ```ts
-import { feedbackSDKBoot, feedbackSDKCallback } from 'feedback-react-native-sdk';
+import { feedbackSDKBoot } from 'feedback-react-native-sdk';
 
-const status = await feedbackSDKBoot({
+const booted = await feedbackSDKBoot({
   appId: 'YOUR_APP_ID',
   accessKey: 'YOUR_ACCESS_KEY',
   code: 'PSN-xxxxx',
@@ -84,15 +84,13 @@ const status = await feedbackSDKBoot({
   // eventUrl: 'https://events.pisano.co',   // optional
 });
 
-if (status !== feedbackSDKCallback.InitSuccess) {
-  // Boot failed — feedbackSDKShow() will not open anything.
+if (!booted) {
+  // Boot failed (bad credentials / wrong URL / TLS / no connection):
+  // feedbackSDKShow() resolves None. Turn on debug mode, retry on next launch.
 }
 ```
 
-| Result | Meaning | What to do |
-|--------|---------|------------|
-| `InitSuccess` | initialized | proceed |
-| `InitFailed` | bad credentials / wrong URL / TLS / network error | don't call `feedbackSDKShow`; turn on debug mode, retry on next launch |
+`feedbackSDKBoot` resolves a `boolean`: `true` when the SDK booted.
 
 ### Show the widget
 
@@ -122,12 +120,12 @@ This is normal, not an error.
 | Value | Category | Fires when | Recommended handling |
 |-------|----------|------------|----------------------|
 | `SendFeedback` | completed | user submitted the survey | thank the user; record "collected"; fire analytics |
-| `Closed` / `Outside` | dismissed | user closed / tapped outside without submitting | no error; optionally retry later, don't loop |
+| `Closed` | dismissed | user closed without submitting (close button, back, drag, a tap outside, or the app took it away); the `closed` event's `closeReason` says how | no error; optionally retry later, don't loop |
 | `DisplayOnce` / `PreventMultipleFeedback` | suppressed | already shown to / answered by this user | stop prompting for this channel |
-| `QuotaExceeded` / `DisplayRateLimited` / `SurveyPassive` | suppressed | panel-side gating (quota / frequency cap / channel off) | nothing to do; safe to call `show` again later |
-| `RedirectToStore` | completed | **Android only** — sent to the store review prompt | don't also trigger your own review request |
-| `None` | inconclusive | not booted, trigger request failed, timed out (Android has a 60 s watchdog; iOS does not), `feedbackSDKClear()` called mid-survey, or a second concurrent `show()` was rejected | check `feedbackSDKBoot` returned `InitSuccess`; enable debug mode |
-| `Opened` / `HealthCheckFailed` | — | never delivered here | ignore |
+| `ChannelQuotaExceeded` / `DisplayRateLimited` / `ChannelPassive` | suppressed | panel-side gating (quota / frequency cap / channel off) | nothing to do; safe to call `show` again later |
+| `None` | inconclusive | not booted, no connection, the request failed, the page could not load, `feedbackSDKClear()` called mid-survey, or another survey was already open | check `feedbackSDKBoot` resolved `true`; enable debug mode |
+
+A store review request is not a result: it is the `redirectedToStore` event of `feedbackSDKOn`.
 
 ```ts
 import { feedbackSDKCallback } from 'feedback-react-native-sdk';
@@ -141,27 +139,24 @@ function handleSurveyResult(result: feedbackSDKCallback | string) {
     case feedbackSDKCallback.PreventMultipleFeedback:
       // already has feedback from this user — stop prompting for this channel
       break;
-    case feedbackSDKCallback.QuotaExceeded:
+    case feedbackSDKCallback.ChannelQuotaExceeded:
     case feedbackSDKCallback.DisplayRateLimited:
-    case feedbackSDKCallback.SurveyPassive:
+    case feedbackSDKCallback.ChannelPassive:
       // panel-side gating — not an error, try again later
       break;
     case feedbackSDKCallback.None:
       console.warn('feedbackSDKShow: no result — check boot / network');
       break;
     default:
-      // Closed / Outside / RedirectToStore / Opened / HealthCheckFailed
+      // Closed
       break;
   }
 }
 ```
 
 > **Don't gate UI on `await feedbackSDKShow(...)`.** Treat the result as a
-> callback. A displayed survey stays open as long as the user wants, and on iOS,
-> if the SDK was not booted or the trigger request fails, the native call never
-> completes and the promise stays pending (Android has a 60 s watchdog; iOS does
-> not). Gate on `feedbackSDKBoot` returning `InitSuccess`, and race your own
-> timeout if you need a bounded wait.
+> callback: a displayed survey stays open as long as the user wants. A survey
+> that is not shown resolves right away (`None` or a gating value).
 
 ### Preflight and events
 
@@ -174,12 +169,18 @@ if (await feedbackSDKHealthCheck({ customer: { externalId: 'USR-42' } })) {
 }
 
 // Send a trigger event — a survey it triggers opens on its own
-feedbackSDKTrack({ event: 'checkout_completed', payload: { orderId: 'ORD-987' } });
+const sent = await feedbackSDKTrack({ event: 'checkout_completed', payload: { orderId: 'ORD-987' } });
 ```
 
-`feedbackSDKHealthCheck` resolves `boolean`. `feedbackSDKTrack` is
-fire-and-forget (`void`) — the native SDKs don't report a triggered survey's
-outcome back through it. Both require a successful `feedbackSDKBoot` first.
+`feedbackSDKHealthCheck` resolves `boolean`. `feedbackSDKTrack` resolves
+`true` when the server accepted the event (`false`: not booted, no `eventUrl`,
+no connection, or the request failed). A survey it triggers reports through
+`feedbackSDKOn` like any other.
+
+Survey events (`opened`, `feedbackSubmitted`, `redirectedToStore`, `closed`)
+come through `feedbackSDKOn(listener)`, which returns an unsubscribe function.
+`feedbackSDKSetRequestTimeout(seconds)` sets the network timeout of every SDK
+request (default 30 s).
 
 The sample screen (`src/App.tsx`) has a button for each call and logs the result.
 

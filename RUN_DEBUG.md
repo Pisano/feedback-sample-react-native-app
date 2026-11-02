@@ -91,7 +91,6 @@ npx react-native run-android
 | `spawnSync adb ENOENT` | `ANDROID_HOME` not set. See "One-time Setup" above. |
 | `Unable to load script` | Run `adb reverse tcp:8081 tcp:8081` and make sure Metro is running. |
 | `Could not determine SDK directory` | Set `ANDROID_HOME` or create `android/local.properties` with `sdk.dir=/Users/<you>/Library/Android/sdk` |
-| `Manifest merger failed ... allowBackup` | Only if your app deliberately sets `android:allowBackup="true"` — the SDK's bridge manifest neutralises the Pisano AAR's value, so a normal app needs nothing. |
 | `Minimum supported Gradle version is 9.x` | Update `android/gradle/wrapper/gradle-wrapper.properties` to the version React Native 0.87 ships (9.4.1). |
 | Build succeeds but app doesn't open | Run manually: `adb shell am start -n com.feedbacksamplereactnativeapp/.MainActivity` |
 | `No connected devices` | Enable USB Debugging on phone: Settings > Developer Options > USB Debugging. |
@@ -138,7 +137,7 @@ npx react-native run-ios
 
 ### New Architecture
 
-`feedback-react-native-sdk@0.3.x` is **New Architecture only** — there is no
+`feedback-react-native-sdk@0.3.x` and later are **New Architecture only** — there is no
 Old Architecture mode to toggle. React Native 0.82+ (the SDK's floor) has no
 Old Architecture at all, so on any supported version it is the only option.
 
