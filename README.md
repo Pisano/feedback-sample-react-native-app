@@ -192,6 +192,11 @@ import { feedbackSDKClear } from 'feedback-react-native-sdk';
 feedbackSDKClear(); // on logout / user switch
 ```
 
+`feedbackSDKClear()` closes an open survey and the native SDKs forget the boot
+settings: call `feedbackSDKBoot` again for the next user (until then
+`feedbackSDKShow` resolves `None`). The sample's Clear button resets the boot
+state for this reason.
+
 ## Relationship to the SDK repo
 
 This app is independent — it installs `feedback-react-native-sdk` from npm and
