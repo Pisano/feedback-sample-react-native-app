@@ -1,5 +1,21 @@
 # Release Notes — feedback-sample-react-native-app
 
+## v1.0.0 (breaking, unreleased)
+
+Aligned with **feedback-react-native-sdk ^1.0.0** (native Pisano 2.0).
+
+- `feedbackSDKBoot` resolves a `boolean`; the sample's boot state follows it
+  (with 1.0.0 the old `"InitSuccess"` check would never pass).
+- `feedbackSDKTrack` resolves a `boolean`; the log shows whether the event was sent.
+- Survey events from `feedbackSDKOn` are written to the log.
+- New **Request timeout** field (default 30 s), applied with
+  `feedbackSDKSetRequestTimeout` before boot.
+- Result names: `ChannelQuotaExceeded` / `ChannelPassive` (were `QuotaExceeded`
+  / `SurveyPassive`); `Outside`, `Opened`, `RedirectToStore`, `InitSuccess` /
+  `InitFailed` and `HealthCheckFailed` are gone (see the SDK's CHANGELOG).
+- No `allowBackup` manifest merge step: neither the SDK nor the bridge sets it.
+
+
 ## v0.3.0 (breaking)
 
 ### Overview

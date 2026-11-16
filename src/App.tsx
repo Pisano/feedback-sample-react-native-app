@@ -16,6 +16,8 @@ import {
   feedbackSDKClear,
   feedbackSDKDebugMode,
   feedbackSDKHealthCheck,
+  feedbackSDKOn,
+  feedbackSDKSetRequestTimeout,
   feedbackSDKShow,
   feedbackSDKTrack,
   feedbackSDKViewMode,
@@ -40,6 +42,7 @@ type Config = {
   customerPhone: string;
   payloadScreen: string;
   payloadOrderId: string;
+  requestTimeout: string;
 };
 
 const INITIAL_CONFIG: Config = {
@@ -57,6 +60,8 @@ const INITIAL_CONFIG: Config = {
   customerPhone: '',
   payloadScreen: 'Checkout',
   payloadOrderId: '',
+  // Network timeout of every SDK request, in seconds (30 is the default).
+  requestTimeout: '30',
 };
 
 type BootState = 'idle' | 'booting' | 'success' | 'failed';
@@ -285,6 +290,14 @@ const ConfigCard = React.memo(function ConfigCardInner({
         onChange={onChange}
       />
       <Field
+        name="requestTimeout"
+        label="Request timeout, seconds (default 30)"
+        value={config.requestTimeout}
+        onChange={onChange}
+        keyboardType="number-pad"
+        placeholder="30"
+      />
+      <Field
         name="titleFontSize"
         label="Title font size (optional)"
         value={config.titleFontSize}
@@ -468,7 +481,11 @@ export default function App() {
     }
     log('Boot started...');
     setBootState('booting');
-    const bootStatus = await feedbackSDKBoot({
+    const timeout = Number(c.requestTimeout);
+    if (Number.isFinite(timeout) && timeout >= 1) {
+      feedbackSDKSetRequestTimeout(timeout);
+    }
+    const booted = await feedbackSDKBoot({
       appId: c.appId.trim(),
       accessKey: c.accessKey.trim(),
       code: c.code.trim(),
@@ -476,8 +493,8 @@ export default function App() {
       feedbackUrl: c.feedbackUrl.trim(),
       eventUrl: c.eventUrl.trim() || undefined,
     });
-    log(`Boot callback: ${bootStatus}`);
-    setBootState(String(bootStatus).includes('Success') ? 'success' : 'failed');
+    log(`Boot callback: ${booted}`);
+    setBootState(booted ? 'success' : 'failed');
   }, [log]);
 
   const handleShow = React.useCallback(async () => {
@@ -535,19 +552,21 @@ export default function App() {
     log(`Health check: ${canShow ? 'a survey would show' : 'no survey'}`);
   }, [log, buildCustomer]);
 
-  const handleTrack = React.useCallback(() => {
+  const handleTrack = React.useCallback(async () => {
     if (bootStateRef.current !== 'success') {
       log('Track blocked: Boot first.');
       return;
     }
     const c = configRef.current;
-    feedbackSDKTrack({
+    const sent = await feedbackSDKTrack({
       event: 'sample_app_event',
       language: c.language.trim() || null,
       customer: toMap(buildCustomer()),
       payload: { screen: c.payloadScreen.trim() || 'Sample' },
     });
-    log("Track event sent ('sample_app_event') — a triggered survey opens on its own");
+    log(
+      `Track 'sample_app_event': ${sent ? 'sent' : 'not sent'} — a triggered survey opens on its own`
+    );
   }, [log, buildCustomer]);
 
   const handleClear = React.useCallback(() => {
@@ -555,6 +574,22 @@ export default function App() {
     log('Clear called');
     setBootState('idle');
   }, [log]);
+
+  // Survey events (opened, feedbackSubmitted, redirectedToStore, closed) arrive
+  // before the show() result.
+  React.useEffect(
+    () =>
+      feedbackSDKOn((event) => {
+        const extra =
+          event.type === 'closed'
+            ? ` (${event.closeReason})`
+            : event.type === 'feedbackSubmitted' && event.hasChat
+              ? ' (chat)'
+              : '';
+        log(`Event: ${event.type}${extra}`);
+      }),
+    [log]
+  );
 
   React.useEffect(() => {
     feedbackSDKDebugMode(debugEnabled);
