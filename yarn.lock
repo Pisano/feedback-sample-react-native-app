@@ -3325,6 +3325,11 @@ fdir@^6.5.0:
   resolved "https://registry.yarnpkg.com/fdir/-/fdir-6.5.0.tgz#ed2ab967a331ade62f18d077dae192684d50d350"
   integrity sha512-tIbYtZbucOs0BRGqPJkshJUYdL+SDH7dVM8gjy+ERp3WAUjLEFJE+02kanyHtwjWOnwrKYBiwAmM0p4kLJAnXg==
 
+feedback-react-native-sdk@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/feedback-react-native-sdk/-/feedback-react-native-sdk-1.0.0.tgz#b3659b00c3a51420d1a32aab4816d9ca023afc74"
+  integrity sha512-F0f7RZOIKlGbr7jEcpRETT1EqouxZk/WupKSsKaNrIzhARHaJqNipFWsuPM74bt7JgubeGEzL3C9S7ZKQIyALQ==
+
 file-entry-cache@^6.0.1:
   version "6.0.1"
   resolved "https://registry.npmjs.org/file-entry-cache/-/file-entry-cache-6.0.1.tgz"
