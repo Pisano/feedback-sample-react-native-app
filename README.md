@@ -8,7 +8,7 @@ on iOS and Android. It installs the SDK from npm like a real integration — it 
 not linked to the SDK source.
 
 **SDK version:** `feedback-react-native-sdk` **^1.0.0** (native Pisano 2.0)
-(Android native `co.pisano:feedback:1.3.+`, iOS `Pisano ~> 1.0.21`).
+(Android native `co.pisano:feedback:2.0.+`, iOS `Pisano ~> 2.0.0`).
 
 The full API reference lives in the
 [SDK README](https://github.com/Pisano/feedback-react-native-sdk#readme). This
