@@ -1,6 +1,6 @@
 # Release Notes — feedback-sample-react-native-app
 
-## v1.0.0 (breaking, unreleased)
+## v1.0.0 (breaking) — 2026-11-23
 
 Aligned with **feedback-react-native-sdk ^1.0.0** (native Pisano 2.0).
 
