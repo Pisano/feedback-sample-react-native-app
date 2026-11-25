@@ -39,9 +39,13 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      - uses: android-actions/setup-android@v3
-      - name: Install Android SDK packages
-        run: sdkmanager "platforms;android-37" "build-tools;37.0.0" "ndk;27.1.12297006"
+      # The runner image already has the Android SDK. Accept the licences only;
+      # Gradle downloads the platform, build tools and NDK the project asks for.
+      # (setup-android@v3 fails: it installs the removed 'tools' package.)
+      - name: Accept Android SDK licences
+        run: |
+          sdkm="$(ls "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager | sort -V | tail -1)"
+          yes | "$sdkm" --licenses >/dev/null || true
       - name: Cache Gradle
         uses: actions/cache@v4
         with:
